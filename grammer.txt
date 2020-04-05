@@ -1,0 +1,88 @@
+P.S work in progress 
+
+
+GRAMMER RULES FOR GRAMMER (G)
+-----------------------------
+
+<program> -> <block>
+<block> -> <statements> 
+<statements> -> <statements> <statement> | e 
+<statement> -> <ifstatement> | <ifstatement><elsestatement> |<forstatement> | <functionstatement> | 
+               <declarestatement> | <returnstatement> | <initstatement> | 
+               <assignstatement> | '{'<statements> '}'
+<ifstatement> -> 'if' <expression> <statement> 
+<elsestatement> -> 'else' <statement> 
+<forstatement> -> 'for' <identifier> 'in' <expression> <statement>
+<functionstatement> -> 'define' <identifier> '(' <argslist> ')' <statement>
+<declarestatement> -> 'declare' <identifier_list> <newline>
+<returnstatement> -> 'return' <expression> <newline>
+<assignstatement> -> <identifier><assign><expression><newline> | 
+                     <identifier>'[' <index_access> ']' <assign> <expression><newline>  
+<initstatement> -> 'init' <assignstatement>
+<expression> -> '(' <expression> ')' | <arithmetic_expression> | <relational_expression> |
+                 <function_expression> | <index_expression> | <range_expression> |
+                 <function_callexpression>
+                 
+<function_callsexpression> -> <identifier> '(' <argslist> ')' <newline>
+<argslist> -> <argslist> ',' <param> | <param> | e  
+<identifier_list> -> <identifier_list> ',' <identifier> | <identifier> | e 
+<identifier> -> <letter> | <letter> <number> 
+<arithmetic_expression> -> <expression> '+' <term> | <expression> '-' <term> 
+<term> -> <term> * <factor> | <term> / <factor> | <factor>
+<factor> -> <number> | '(' <expression> ')'
+<newline> -> '\n' | e
+<string_literal> -> '\''<alpha>'\'' | '"'<alpha>'"' | "" | ''
+<letter> -> '_' |'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' |
+            'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' |
+            'w' | 'x' | 'y' | 'z'
+<number> -> <digit> <number> | e
+<digit> -> 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
+<range_expression> -> '(' <number> '..' <number> ')'
+
+// UNDONE - PR
+<relational_expression>
+<function_expression>
+<index_expression>
+<function_callexpression>
+<alpha>
+
+SAMPLE STRINGS FROM TARGET GRAMMER (G)
+--------------------------------------
+
+
+for i in (1..10) {
+     for j in (5..9) {
+	print i , j 	
+    }
+}
+
+define subtext(){
+    return "ehl"
+}
+
+define entry(){
+    
+    declare text
+    text = 6
+
+    init subval = 89
+    print subval, text
+
+    // while expression 
+    while i < j {
+	     print i++
+    }
+}
+
+define main(args){
+   for arg in args {
+	   print arg
+  }
+
+}
+
+--------------------------------------
+//
+  module stdlib
+  package main
+//
