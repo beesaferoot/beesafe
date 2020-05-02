@@ -41,6 +41,9 @@ Token* Lexer::NextToken()
     case '*':
         tok = new Operator(TokenType::ASTERISK, std::string(1, curChar));
         break;
+    case '/':
+        tok = new Operator(TokenType::DIV, std::string(1, curChar));
+        break;
     case '<':
         tok = new Operator(TokenType::LT, std::string(1, curChar));
         break;

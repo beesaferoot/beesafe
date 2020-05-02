@@ -6,6 +6,7 @@
 using std::string;
 using std::cerr;
 using std::cout;
+using namespace parser;
 // add necessary includes here
 
 class TestParser : public QObject
@@ -87,7 +88,7 @@ void TestParser::test_declarestmt()
                     declare x
                     declare x, y
                     declare x, y, z
-                   })";
+                   )";
     Lexer* l = Lexer::New(buff);
     Parser* parser = Parser::New(l);
     auto program = parser->parseProgram();
@@ -110,7 +111,20 @@ void TestParser::test_declarestmt()
 
 void TestParser::test_expression()
 {
-
+    cout << R"(
+            ---- test_expression ----
+            )" << endl;
+    string buff = R"(
+                    (6 + (8+9) - 8)
+                    3 * 8 + (9 + 0)
+                    (9) * (8-9)
+                   )";
+    Lexer* l = Lexer::New(buff);
+    Parser* parser = Parser::New(l);
+    auto program = parser->parseProgram();
+    cout << "LEN(STMTS) -> " << program->Stmts.size()
+         << endl;
+    QCOMPARE(program->Stmts.size(), 3);
 }
 
 void TestParser::test_initstmt()

@@ -21,7 +21,7 @@ enum TokenType{
     MINUS = 267,
     BANG = 268,
     ASTERISK = 269,
-    SLASH = 270,
+    DIV = 270,
     DEFINE = 271,
     INIT = 272,
     DECLARE = 273,

@@ -1,4 +1,13 @@
 #include "parser.h"
+using namespace parser;
+
+unordered_map<TokenType, PRECENDENCE> Parser::precendences = {
+   {TokenType::PLUS, PRECENDENCE::ADD},
+   {TokenType::MINUS, PRECENDENCE::SUB},
+   {TokenType::UMINUS, PRECENDENCE::USUB},
+   {TokenType::ASTERISK, PRECENDENCE::MUL},
+   {TokenType::DIV, PRECENDENCE::DIV}
+};
 
 Parser::Parser(Lexer* l)
     :l{l}
@@ -42,7 +51,7 @@ Stmt* Parser::parseStatement()
        case TokenType::NEWLINE:
              return nullptr;
        default:
-           return nullptr;
+           return parseExpressionStatement();
     }
 }
 
@@ -138,6 +147,14 @@ DeclareStmt* Parser::parseDeclStatement()
     return stmt;
 }
 
+ExpressionStmt* Parser::parseExpressionStatement()
+{
+    ExpressionStmt* stmt = new ExpressionStmt(curToken, l->line);
+    stmt->Expression = parseExpression();
+    nextToken();
+    return  stmt;
+}
+
 Expr* Parser::parseExpression()
 {
     Operators.push({PRECENDENCE::BASE, nullptr});
@@ -148,6 +165,7 @@ Expr* Parser::parseExpression()
     }
     auto e = Operands.top();
     Operands.pop();
+    Operators.pop();
     return e;
 
 }
@@ -187,13 +205,12 @@ void Parser::produce()
               break;
           case TokenType::LPAREN:
                nextToken();
-               Operators.push({PRECENDENCE::BASE, nullptr});
                E();
                if(!expectPeek(TokenType::RPAREN))
                {
                    throw  "Syntax Error";
                }
-               Operands.pop();
+               break;
          default:
             Operator* e=nullptr;
             e = uniary(curToken->Type);
@@ -257,6 +274,12 @@ Expr* Parser::mkNode(Operator* op, Expr* e1, Expr* e2)
              usub->RightOp = e2;
              return usub;
            }
+        case TokenType::DIV:
+          {
+            auto div = new Div(op, l->line);
+            div->RightOp = e2;
+            return div;
+          }
         default:
              cerr << "couldn't parse operator type " << op->symbol
                    << endl;
@@ -273,7 +296,8 @@ Operator* Parser::binary(TokenType t)
              return new Operator(TokenType::ASTERISK, "*");
         case TokenType::MINUS:
              return new Operator(TokenType::MINUS, "-");
-
+        case TokenType::DIV:
+             return new Operator(TokenType::DIV, "/");
         default:
            return nullptr;
     }
@@ -291,7 +315,7 @@ Operator* Parser::uniary(TokenType t)
 
 void Parser::pushOperator(Operator* op, bool isBinary)
 {
-    int pLevel = opPrecedence(op->Type);
+    int pLevel = precendences[op->Type];
     while(Operators.top().first > pLevel)
     {
         popOperator(isBinary);
@@ -317,23 +341,6 @@ void Parser::popOperator(bool isBinary)
     Operators.pop();
 }
 
-PRECENDENCE Parser::opPrecedence(TokenType t)
-{
-    switch (t) {
-       case TokenType::PLUS:
-            return PRECENDENCE::ADD;
-       case TokenType::MINUS:
-            return  PRECENDENCE::SUB;
-       case TokenType::UMINUS:
-            return PRECENDENCE::USUB;
-       case TokenType::ASTERISK:
-            return PRECENDENCE::MUL;
-       case TokenType::SLASH:
-            return PRECENDENCE::DIV;
-       default:
-            return PRECENDENCE::BASE;
-    }
-}
 RangeExpr* Parser::parseRangeExpression()
 {
 

@@ -125,6 +125,11 @@ struct Sub : BinaryOp {
         :BinaryOp(t, PRECENDENCE::SUB, ASSOCIATION::LEFT, line) {}
 };
 
+struct Div : BinaryOp {
+    Div(Token* t, int line)
+        :BinaryOp(t, PRECENDENCE::DIV, ASSOCIATION::LEFT, line){}
+};
+
 struct UniaryOp : Op {
     Expr* RightOp;
     UniaryOp(Token* t, int p, int a , int line)
@@ -168,6 +173,14 @@ struct WhileStmt: Stmt {
     BlockStmt* body;
     WhileStmt(Token* token, int line)
         :Stmt(line), tok{token}{}
+};
+
+struct ExpressionStmt: Stmt {
+    Token* tok;
+    Expr* Expression;
+    ExpressionStmt(Token* token, int line)
+        :Stmt(line), tok{token}{}
+
 };
 
 struct RangeExpr: Expr {
