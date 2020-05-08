@@ -8,7 +8,7 @@ class Symbol: public Token
 public:
     Symbol(TokenType symbolType,std::string symbol)
         :Token(symbolType, symbol), symbol(symbol){}
-
+    ~Symbol(){}
     std::string symbol;
 };
 

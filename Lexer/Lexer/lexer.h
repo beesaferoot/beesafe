@@ -33,10 +33,8 @@ public:
     bool isDigit(char);
     std::string readIdent();
     std::string readInt();
-    void reserve(Word t)
-    {
-        keywords.insert({t.lexeme, t});
-    }
+    std::string readStringLiteral(char);
+    void reserve(Word t);
     void setInputBuf(std::string input )
     {
         readPosition = 0;
@@ -44,13 +42,12 @@ public:
         readChar();
     }
     int line = 1;
-
 private:
     std::string input;
     int position;
     int readPosition;
     char curChar;
-    Table keywords;
+    static Table keywords;
 };
 
 }

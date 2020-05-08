@@ -3,6 +3,7 @@
 using namespace lexer;
 using namespace token;
 
+Table Lexer::keywords = {};
 Lexer* Lexer::New(std::string input)
 {
     Lexer* l = new Lexer(input);
@@ -45,10 +46,29 @@ Token* Lexer::NextToken()
         tok = new Operator(TokenType::DIV, std::string(1, curChar));
         break;
     case '<':
-        tok = new Operator(TokenType::LT, std::string(1, curChar));
+        if (peekChar() == '='){
+            char ch = curChar;
+            readChar();
+            std::string literal = "";
+            literal += ch;
+            literal += curChar;
+            tok = new Operator(TokenType::LT_EQ, literal);
+        }else{
+            tok = new Operator(TokenType::LT, std::string(1, curChar));
+        }
         break;
     case '>':
-        tok = new Operator(TokenType::GT, std::string(1, curChar));
+        if (peekChar() == '='){
+            char ch = curChar;
+            readChar();
+            std::string literal = "";
+            literal += ch;
+            literal += curChar;
+            tok = new Operator(TokenType::GT_EQ, literal);
+        }else{
+            tok = new Operator(TokenType::GT, std::string(1, curChar));
+        }
+
         break;
     case '=':
         if (peekChar() == '='){
@@ -60,6 +80,18 @@ Token* Lexer::NextToken()
             tok = new Operator(TokenType::EQ, literal);
         }else{
             tok = new Operator(TokenType::ASSIGN, std::string(1, curChar));
+        }
+        break;
+    case '!':
+        if (peekChar() == '='){
+            char ch = curChar;
+            readChar();
+            std::string literal = "";
+            literal += ch;
+            literal += curChar;
+            tok = new Operator(TokenType::NOT_EQ, literal);
+        }else{
+            tok = new Operator(TokenType::BANG, std::string(1, curChar));
         }
         break;
     case ',':
@@ -83,8 +115,8 @@ Token* Lexer::NextToken()
     default:
         if (isLetter(curChar)){
             std::string literal = readIdent();
-            auto wsrch = keywords.find(literal);
-            if(wsrch != keywords.end())
+            auto wsrch = Lexer::keywords.find(literal);
+            if(wsrch != Lexer::keywords.end())
                 tok  = &wsrch->second;
             else
                 tok = new Word(TokenType::ID, literal);
@@ -93,13 +125,22 @@ Token* Lexer::NextToken()
             int val = std::stoi(readInt());
             tok = new Num(val);
             return tok;
-        }else{
+        }else if(curChar == '\'' || curChar == '"'){
+            std::string literal = readStringLiteral(curChar);
+            tok = new Word(TokenType::LITERAL, literal);
+        }
+        else{
            tok = new Token(TokenType::INVALID, std::string(1, curChar));
         }
 
     }
     readChar();
     return tok;
+}
+
+void Lexer::reserve(Word t)
+{
+    Lexer::keywords.insert({t.lexeme, t});
 }
 
 void Lexer::skipWhiteSpace()
@@ -154,5 +195,15 @@ std::string Lexer::readInt()
     while(isDigit(curChar)){
         readChar();
     }
+    return input.substr(pos, position - pos);
+}
+
+std::string Lexer::readStringLiteral(char c)
+{
+    int pos = position+1;
+    while(peekChar() != c){
+        readChar();
+    }
+    readChar();
     return input.substr(pos, position - pos);
 }

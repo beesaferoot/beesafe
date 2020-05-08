@@ -8,7 +8,7 @@ class Num : public Token{
 public:
     Num(int v)
         :Token(TokenType::NUM, std::to_string(v)), value(v){}
-
+    ~Num(){}
     const int value;
 };
 

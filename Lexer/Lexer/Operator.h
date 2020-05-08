@@ -8,7 +8,7 @@ class Operator : public Token{
 public:
     Operator(TokenType op, std::string literal)
         :Token(op, literal), symbol(literal){}
-
+    ~Operator(){}
     std::string symbol;
 };
 

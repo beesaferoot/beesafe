@@ -8,7 +8,7 @@ class Word : public Token{
 public:
     Word(TokenType type, std::string literal)
         :Token(type, literal), lexeme(literal){}
-
+    ~Word(){}
    std::string lexeme;
 };
 

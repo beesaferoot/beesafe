@@ -41,7 +41,11 @@ enum TokenType{
     LIST = 287,
     IN = 288,
     RANGE = 289,
-    SENTINEL = 290
+    SENTINEL = 290,
+    LT_EQ = 291,
+    GT_EQ = 293,
+    LITERAL = 294,
+    CALL = 295
 };
 
 class Token{
@@ -50,6 +54,7 @@ public:
     TokenType Type;
     std::string Literal;
     Token(){}
+    virtual ~Token(){}
     Token(TokenType Type, std::string literal)
         :Type{Type}, Literal{literal}
     {}

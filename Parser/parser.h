@@ -37,8 +37,14 @@ public:
     ForStmt* parserForStatement();
     InitStmt* parseInitStatement();
     DeclareStmt* parseDeclStatement();
+    ReturnStmt* parseReturnStatement();
+    IfStmt* parseIfStatement();
+    FunctionStmt* parseFunctionStatement();
+    vector<Identifier*> parseFunctionParameters();
+    CallExpression* parseCallExpression();
     ExpressionStmt* parseExpressionStatement();
     Expr* parseExpression();
+    Expr* parseFunctionLiteral();
     RangeExpr* parseRangeExpression();
     bool peekTokenIs(TokenType);
     bool expectPeek(TokenType);
@@ -58,6 +64,7 @@ private:
     stack<pair<int, Operator*>> Operators;
     stack<Expr*> Operands;
     static  unordered_map<TokenType, PRECENDENCE> precendences;
+    static unordered_map<TokenType, bool> BinaryOperators;
 };
 
 }
