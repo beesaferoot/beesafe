@@ -546,15 +546,15 @@ void Parser::popOperator(bool isBinary)
 
     if(Operands.size() >= 2 && isBinary)
     {
-      auto e1 = Operands.top();
-      Operands.pop();
       auto e2 = Operands.top();
+      Operands.pop();
+      auto e1 = Operands.top();
       Operands.pop();
       Operands.push(mkNode(Operators.top().second, e1, e2));
     }else{
-        auto e1 = Operands.top();
+        auto e2 = Operands.top();
         Operands.pop();
-        Operands.push(mkNode(Operators.top().second, nullptr, e1));
+        Operands.push(mkNode(Operators.top().second, nullptr, e2));
     }
     Operators.pop();
 }

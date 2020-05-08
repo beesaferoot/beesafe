@@ -44,7 +44,14 @@ void TestParser::test_functioncall()
     cout << R"(
             ---- test_functioncall ----
             )" << endl;
-    string buff = R"(add(1, 2*2, 3+3))";
+    string buff = R"(add(2, 2*4)
+                  sqrt(2, 3)
+                  ((3*8) - (1 + power(2, 3)))
+                  init a = define(){
+                    return "flower"
+                  }()
+                  entry("headers")
+                  )";
     Lexer* l = Lexer::New(buff);
     Parser* parser = Parser::New(l);
     auto program = parser->parseProgram();
