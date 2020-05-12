@@ -9,6 +9,8 @@
 #include<cassert>
 #include<stack>
 #include<unordered_map>
+#include<stdexcept>
+#include <sstream>
 
 using namespace lexer;
 using namespace ast;
@@ -21,7 +23,6 @@ using std::pair;
 using std::unordered_map;
 
 namespace parser {
-
 
 
 class Parser
@@ -66,6 +67,14 @@ private:
     static  unordered_map<TokenType, PRECENDENCE> precendences;
     static unordered_map<TokenType, bool> BinaryOperators;
 };
+
+class SyntaxError: public std::runtime_error {
+
+public:
+    SyntaxError(std::string message)
+        :runtime_error(message){}
+};
+
 
 }
 

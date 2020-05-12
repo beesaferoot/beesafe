@@ -12,5 +12,7 @@ add_library(ast STATIC
 )
 
 target_compile_definitions(ast PRIVATE AST_LIBRARY)
-include_directories("/home/beesafe/Documents/Source Code/Prj/Qt_Creator/BS/Symbols/Symbols"
-    "/home/beesafe/Documents/Source Code/Prj/Qt_Creator/BS/Lexer/Lexer")
+include_directories(
+    "${CMAKE_SOURCE_DIR}/../../Lexer/Lexer"
+    "${CMAKE_SOURCE_DIR}/../../Symbols/Symbols"
+    )

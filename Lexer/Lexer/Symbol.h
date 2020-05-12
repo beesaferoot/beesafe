@@ -9,6 +9,11 @@ public:
     Symbol(TokenType symbolType,std::string symbol)
         :Token(symbolType, symbol), symbol(symbol){}
     ~Symbol(){}
+    std::ostream& operator<<(std::ostream &out)
+    {
+        out << this->symbol;
+        return out;
+    }
     std::string symbol;
 };
 

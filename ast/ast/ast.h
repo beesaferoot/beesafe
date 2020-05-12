@@ -3,6 +3,8 @@
 #include"type.h"
 #include"token.h"
 #include<vector>
+#include<ostream>
+#include<sstream>
 
 using namespace symbols;
 using namespace token;
@@ -49,8 +51,15 @@ struct Expr : Node {
     virtual ~Expr(){
         delete  type;
     }
+
     Expr(type_ptr t, int line)
         :Node(line), type{t}{}
+    virtual std::string toString() const = 0;
+    friend std::ostream& operator<<(std::ostream &out, Expr const *obj)
+    {
+        out << obj->toString();
+        return out;
+    }
 };
 
 struct BooleanExpr : Expr {
@@ -61,6 +70,12 @@ struct BooleanExpr : Expr {
     ~BooleanExpr(){
         delete  tok;
     }
+    virtual std::string toString() const;
+    friend std::ostream& operator<<(std::ostream &out, BooleanExpr const *obj)
+    {
+        out << obj->toString();
+        return out;
+    }
 };
 
 struct Stmt : Node {
@@ -68,7 +83,12 @@ struct Stmt : Node {
         :Node(line){}
     Stmt(){}
     virtual ~Stmt(){}
-
+    virtual std::string toString() const = 0;
+    friend std::ostream& operator<<(std::ostream &out, Stmt const *obj)
+    {
+        out << obj->toString();
+        return out;
+    }
 };
 
 struct BlockStmt : Stmt {
@@ -82,6 +102,12 @@ struct BlockStmt : Stmt {
             delete stmt;
         }
     }
+    virtual std::string toString() const;
+    friend std::ostream& operator<<(std::ostream &out, BlockStmt const *obj)
+    {
+        out << obj->toString();
+        return out;
+    }
 };
 
 struct ReturnStmt : Stmt {
@@ -93,6 +119,13 @@ struct ReturnStmt : Stmt {
         delete  tok;
         delete  returnValue;
     }
+    virtual std::string toString() const;
+
+    friend std::ostream& operator<<(std::ostream &out, ReturnStmt const *obj)
+    {
+        out << obj->toString();
+        return out;
+    }
 };
 
 struct Program : Node {
@@ -102,6 +135,12 @@ struct Program : Node {
         for(auto stmt: Stmts){
             delete  stmt;
         }
+    }
+    virtual std::string toString() const;
+    friend std::ostream& operator<<(std::ostream &out, Program const *obj)
+    {
+        out << obj->toString();
+        return out;
     }
 };
 
@@ -116,7 +155,13 @@ struct Identifier : Expr{
         delete  tok;
         delete value;
     }
+    virtual std::string toString() const;
+    friend std::ostream& operator<<(std::ostream &out, Identifier const *obj)
+    {
 
+        out << obj->toString();
+        return out;
+    }
 };
 
 struct StringLiteral : Expr{
@@ -127,6 +172,13 @@ struct StringLiteral : Expr{
     ~StringLiteral(){
         delete  tok;
     }
+
+    virtual std::string toString() const;
+    friend std::ostream& operator<<(std::ostream &out, StringLiteral const *obj)
+    {
+        out << obj->toString();
+        return out;
+    }
 };
 
 struct Number :  Expr {
@@ -136,6 +188,12 @@ struct Number :  Expr {
         :Expr(Type::Int, line), tok{t}, value{v}{}
     ~Number(){
         delete  tok;
+    }
+    virtual std::string toString() const;
+    friend std::ostream& operator<<(std::ostream &out, Number const *obj)
+    {
+        out << obj->toString();
+        return out;
     }
 };
 
@@ -148,6 +206,7 @@ struct Op: Expr {
     virtual ~Op(){
         delete  tok;
     }
+    virtual std::string toString() const = 0;
 };
 
 
@@ -160,72 +219,141 @@ struct BinaryOp : Op {
         delete  RightOp;
         delete LeftOp;
     }
+    virtual std::string toString() const = 0;
 };
 
 struct Assign : BinaryOp{
     Assign(Token* t, int line)
         :BinaryOp(t, PRECENDENCE::ADD, ASSOCIATION::LEFT,line){}
     ~Assign(){}
+    virtual std::string toString() const;
+    friend std::ostream& operator<<(std::ostream &out, Assign const *obj)
+    {
+        out << obj->toString();
+        return out;
+    }
 };
 
 struct Add : BinaryOp {
     Add(Token* t, int line)
         :BinaryOp(t, PRECENDENCE::ADD, ASSOCIATION::LEFT,line){}
     ~Add(){}
+    virtual std::string toString() const;
+    friend std::ostream& operator<<(std::ostream &out, Add const * obj)
+    {
+        out << obj->toString();
+        return out;
+    }
 };
 
 struct Mult : BinaryOp {
     Mult(Token* t, int line)
         :BinaryOp(t, PRECENDENCE::MUL, ASSOCIATION::LEFT, line){}
     ~Mult(){}
+    virtual std::string toString() const;
+    friend std::ostream& operator<<(std::ostream &out, Mult const * obj)
+    {
+        out << obj->toString();
+        return out;
+    }
 };
 
 struct Sub : BinaryOp {
     Sub(Token* t, int line)
         :BinaryOp(t, PRECENDENCE::SUB, ASSOCIATION::LEFT, line) {}
     ~Sub(){}
+    virtual std::string toString() const;
+    friend std::ostream& operator<<(std::ostream &out, Sub const *obj)
+    {
+        out << obj->toString();
+        return out;
+    }
 };
+
+
 
 struct Div : BinaryOp {
     Div(Token* t, int line)
         :BinaryOp(t, PRECENDENCE::DIV, ASSOCIATION::LEFT, line){}
     ~Div(){}
+    virtual std::string toString() const;
+    friend std::ostream& operator<<(std::ostream &out, Div const * obj)
+    {
+        out << obj->toString();
+        return out;
+    }
 };
 
 struct LessThan : BinaryOp {
     LessThan(Token* t, int line)
         :BinaryOp(t, PRECENDENCE::LT, ASSOCIATION::LEFT, line){}
     ~LessThan(){}
+    virtual std::string toString() const;
+    friend std::ostream& operator<<(std::ostream &out, LessThan const * obj)
+    {
+        out << obj->toString();
+        return out;
+    }
 };
 
 struct GreaterThan : BinaryOp {
     GreaterThan(Token* t, int line)
         :BinaryOp(t, PRECENDENCE::GT, ASSOCIATION::LEFT, line){}
     ~GreaterThan(){}
+    virtual std::string toString() const;
+    friend std::ostream& operator<<(std::ostream &out, GreaterThan const * obj)
+    {
+        out << obj->toString();
+        return out;
+    }
 };
 
 struct LessThanOrEqual : BinaryOp {
     LessThanOrEqual(Token* t, int line)
         :BinaryOp(t, PRECENDENCE::LT_EQ, ASSOCIATION::LEFT, line){}
     ~LessThanOrEqual(){}
+    virtual std::string toString() const;
+    friend std::ostream& operator<<(std::ostream &out, LessThanOrEqual const * obj)
+    {
+        out << obj->toString();
+        return out;
+    }
 };
 
 struct GreaterThanOrEqual : BinaryOp {
     GreaterThanOrEqual(Token* t, int line)
         :BinaryOp(t, PRECENDENCE::GT_EQ, ASSOCIATION::LEFT, line){}
     ~GreaterThanOrEqual(){}
+    virtual std::string toString() const;
+    friend std::ostream& operator<<(std::ostream &out, GreaterThanOrEqual const * obj)
+    {
+        out << obj->toString();
+        return out;
+    }
 };
 
 struct Equals : BinaryOp {
     Equals(Token* t, int line)
         :BinaryOp(t, PRECENDENCE::EQ, ASSOCIATION::RIGHT, line){}
     ~Equals(){}
+    virtual std::string toString() const;
+    friend std::ostream& operator<<(std::ostream &out, Equals const * obj)
+    {
+        out << obj->toString();
+        return out;
+    }
 };
 
 struct NotEquals : BinaryOp{
     NotEquals(Token* t, int line)
         :BinaryOp(t, PRECENDENCE::NT_EQ, ASSOCIATION::LEFT, line){}
     ~NotEquals(){}
+    virtual std::string toString() const;
+    friend std::ostream& operator<<(std::ostream &out, NotEquals const * obj)
+    {
+        out << obj->toString();
+        return out;
+    }
 };
 
 
@@ -236,18 +364,31 @@ struct UniaryOp : Op {
     virtual ~UniaryOp(){
         delete  RightOp;
     }
+    virtual std::string toString() const = 0;
 };
 
 struct UniarySub: UniaryOp {
     UniarySub(Token* t, int line)
         :UniaryOp(t, PRECENDENCE::USUB, ASSOCIATION::LEFT, line){}
     ~UniarySub(){}
+    virtual std::string toString() const;
+    friend std::ostream& operator<<(std::ostream &out, UniarySub const * obj)
+    {
+        out << obj->toString();
+        return out;
+    }
 };
 
 struct Not : UniaryOp{
     Not(Token* t, int line)
         :UniaryOp(t, PRECENDENCE::NOT, ASSOCIATION::RIGHT, line){}
     ~Not(){}
+    virtual std::string toString() const;
+    friend std::ostream& operator<<(std::ostream &out, Not const * obj)
+    {
+        out << obj->toString();
+        return out;
+    }
 };
 
 struct InitStmt: Stmt {
@@ -260,6 +401,12 @@ struct InitStmt: Stmt {
         delete tok;
         delete  variable;
         delete  value;
+    }
+    virtual std::string toString() const;
+    friend std::ostream& operator<<(std::ostream &out, InitStmt const * obj)
+    {
+        out << obj->toString();
+        return out;
     }
 };
 
@@ -274,24 +421,13 @@ struct DeclareStmt: Stmt {
             delete ident;
         }
     }
-};
-
-struct ForStmt: Stmt {
-    Token* tok;
-    Identifier* target;
-    Expr* iter;
-    BlockStmt* body;
-
-    ForStmt(Token* token, int line)
-        :Stmt(line), tok{token}{}
-    ~ForStmt(){
-        delete tok;
-        delete  target;
-        delete iter;
-        delete body;
+    virtual std::string toString() const;
+    friend std::ostream& operator<<(std::ostream &out, DeclareStmt const * obj)
+    {
+        out << obj->toString();
+        return out;
     }
 };
-
 
 struct WhileStmt: Stmt {
     Token* tok;
@@ -303,6 +439,12 @@ struct WhileStmt: Stmt {
         delete tok;
         delete condition;
         delete body;
+    }
+    virtual std::string toString() const;
+    friend std::ostream& operator<<(std::ostream &out, WhileStmt const * obj)
+    {
+        out << obj->toString();
+        return out;
     }
 };
 
@@ -319,6 +461,12 @@ struct IfStmt: Stmt {
         delete body;
         delete alternative;
     }
+    virtual std::string toString() const;
+    friend std::ostream& operator<<(std::ostream &out, IfStmt const * obj)
+    {
+        out << obj->toString();
+        return out;
+    }
 };
 
 struct ExpressionStmt: Stmt {
@@ -330,7 +478,12 @@ struct ExpressionStmt: Stmt {
         delete  tok;
         delete Expression;
     }
-
+    virtual std::string toString() const;
+    friend std::ostream& operator<<(std::ostream &out, ExpressionStmt const * obj)
+    {
+        out << obj->toString();
+        return out;
+    }
 };
 
 struct FunctionStmt : ExpressionStmt {
@@ -354,6 +507,12 @@ struct FunctionLiteral: Expr {
         }
         delete body;
     }
+    virtual std::string toString() const;
+    friend std::ostream& operator<<(std::ostream &out, FunctionLiteral const * obj)
+    {
+        out << obj->toString();
+        return out;
+    }
 };
 
 struct CallExpression: Expr {
@@ -369,6 +528,12 @@ struct CallExpression: Expr {
             delete  arg;
         }
     }
+    virtual std::string toString() const;
+    friend std::ostream& operator<<(std::ostream &out, CallExpression const * obj)
+    {
+        out << obj->toString();
+        return out;
+    }
 };
 
 struct RangeExpr: Expr {
@@ -380,8 +545,36 @@ struct RangeExpr: Expr {
     ~RangeExpr(){
         delete tok;
     }
+    virtual std::string toString() const;
+    friend std::ostream& operator<<(std::ostream &out, RangeExpr const * obj)
+    {
+        out << obj->toString();
+        return out;
+    }
 };
 
+struct ForStmt: Stmt {
+    Token* tok;
+    Identifier* target;
+    RangeExpr* iter;
+    BlockStmt* body;
+
+    ForStmt(Token* token, int line)
+        :Stmt(line), tok{token}{}
+    ~ForStmt(){
+        delete tok;
+        delete  target;
+        delete iter;
+        delete body;
+    }
+    virtual std::string toString() const;
+
+    friend std::ostream& operator<<(std::ostream &out, ForStmt const * obj)
+    {
+        out << obj->toString();
+        return out;
+    }
+};
 
 
 }

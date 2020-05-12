@@ -55,8 +55,7 @@ void TestParser::test_functioncall()
     Lexer* l = Lexer::New(buff);
     Parser* parser = Parser::New(l);
     auto program = parser->parseProgram();
-    cout << "LEN(STMTS) -> " << program->Stmts.size()
-         << endl;
+    cout << program << endl;
 
 }
 void TestParser::test_functionstmt()
@@ -76,8 +75,7 @@ void TestParser::test_functionstmt()
     Lexer* l = Lexer::New(buff);
     Parser* parser = Parser::New(l);
     auto program = parser->parseProgram();
-    cout << "LEN(STMTS) -> " << program->Stmts.size()
-         << endl;
+    cout << program << endl;
 
 }
 
@@ -92,8 +90,7 @@ void TestParser::test_functionliteral()
     Lexer* l = Lexer::New(buff);
     Parser* parser = Parser::New(l);
     auto program = parser->parseProgram();
-    cout << "LEN(STMTS) -> " << program->Stmts.size()
-         << endl;
+    cout << program << endl;
 }
 
 void TestParser::test_returnstmt()
@@ -103,6 +100,7 @@ void TestParser::test_returnstmt()
             ---- test_returnstmt ----
             )" << endl;
     string buff = R"(return (1+1)
+                     return 1 - 9
                      return 3
                      return 8 * 9
                      return 4 / 2
@@ -114,9 +112,8 @@ void TestParser::test_returnstmt()
     Lexer* l = Lexer::New(buff);
     Parser* parser = Parser::New(l);
     auto program = parser->parseProgram();
-    cout << "LEN(STMTS) -> " << program->Stmts.size()
-         << endl;
-    QCOMPARE((int)program->Stmts.size(), 8);
+    QCOMPARE((int)program->Stmts.size(), 9);
+    cout << program << endl;
 }
 
 void TestParser::test_ifstmt()
@@ -145,14 +142,8 @@ void TestParser::test_ifstmt()
     Lexer* l = Lexer::New(buff);
     Parser* parser = Parser::New(l);
     auto program = parser->parseProgram();
-    cout << "LEN(STMTS) -> " << program->Stmts.size()
-         << endl;
     QCOMPARE((int)program->Stmts.size(), 5);
-    for(auto stmt: program->Stmts){
-        auto ifstmt = static_cast<IfStmt*>(stmt);
-        cout << ifstmt->tok->Literal << " ";
-        cout << "statement at line numnber " << ifstmt->lineno << endl;
-    }
+    cout << program << endl;
 }
 
 void TestParser::test_forstmt()
@@ -161,29 +152,12 @@ void TestParser::test_forstmt()
             ---- test_forstmt ----
             )" << endl;
     string buff = R"(for i in (1..10) {
-                     for j in (10..20){}
-                     for j in (10..20){}
-                     for j in (10..20){}
                    })";
     Lexer* l = Lexer::New(buff);
     Parser* parser = Parser::New(l);
     auto program = parser->parseProgram();
-    cout << "LEN(STMTS) -> " << program->Stmts.size()
-         << endl;
     QCOMPARE((int)program->Stmts.size(), 1);
-    ForStmt* forstmt = static_cast<ForStmt*>(program->Stmts[0]);
-    BlockStmt* stmtBody = nullptr;
-
-    stmtBody = forstmt->body;
-    QCOMPARE((int)stmtBody->Stmts.size(), 3);
-
-    for(Stmt* stmt : stmtBody->Stmts)
-    {
-        cout << "statement at line numnber " << stmt->lineno << endl;
-    }
-
-
-
+    cout << program;
 }
 
 void TestParser::test_declarestmt()
@@ -200,21 +174,8 @@ void TestParser::test_declarestmt()
     Lexer* l = Lexer::New(buff);
     Parser* parser = Parser::New(l);
     auto program = parser->parseProgram();
-    cout << "LEN(STMTS) -> " << program->Stmts.size()
-         << endl;
     QCOMPARE((int)program->Stmts.size(), 3);
-
-    for(int i{0}; i < (int) program->Stmts.size(); i++)
-    {
-        auto temp = static_cast<DeclareStmt*>(program->Stmts[i]);
-        cout << "statement " << (i+1) << endl;
-        cout << "declare ";
-        for(auto id : temp->varList){
-            QCOMPARE(id->tok->Type, TokenType::ID);
-            cout << id->tok->Literal << ", ";
-        }
-        cout << endl;
-    }
+    cout << program << endl;
 }
 
 void TestParser::test_expression()
@@ -222,7 +183,9 @@ void TestParser::test_expression()
     cout << R"(
             ---- test_expression ----
             )" << endl;
-    string buff = R"(
+    string buff = R"((7 * (3 + 4 - 4))
+                    -2
+                    (-3)
                     (6 + (8+9) - 8)
                     3 * 8 + (9 + 0)
                     (9) * (8-9)
@@ -230,9 +193,8 @@ void TestParser::test_expression()
     Lexer* l = Lexer::New(buff);
     Parser* parser = Parser::New(l);
     auto program = parser->parseProgram();
-    cout << "LEN(STMTS) -> " << program->Stmts.size()
-         << endl;
-    QCOMPARE((int)program->Stmts.size(), 3);
+    QCOMPARE((int)program->Stmts.size(), 6);
+    cout << program << endl;
 }
 
 void TestParser::test_initstmt()
@@ -248,18 +210,8 @@ void TestParser::test_initstmt()
     Lexer* l = Lexer::New(buff);
     Parser* parser = Parser::New(l);
     auto program = parser->parseProgram();
-    cout << "LEN(STMTS) -> " << program->Stmts.size()
-         << endl;
     QCOMPARE((int)program->Stmts.size(), 3);
-    for(int i{0}; i < (int) program->Stmts.size(); i++)
-    {
-        auto temp = static_cast<InitStmt*>(program->Stmts[i]);
-        cout << "statement " << (i+1) << endl;
-        cout << "init " << temp->variable->tok->Literal;
-        auto val = static_cast<Op*>(temp->value);
-        cout << " = " << val->tok->Literal;
-        cout << endl;
-    }
+    cout << program << endl;
 }
 
 void TestParser::test_stmts()
@@ -279,9 +231,8 @@ void TestParser::test_stmts()
     Lexer* l = Lexer::New(buff);
     Parser* parser = Parser::New(l);
     auto program = parser->parseProgram();
-    cout << "LEN(STMTS) -> " << program->Stmts.size()
-         << endl;
     QCOMPARE((int)program->Stmts.size(), 4);
+    cout << program << endl;
 }
 
 QTEST_APPLESS_MAIN(TestParser)

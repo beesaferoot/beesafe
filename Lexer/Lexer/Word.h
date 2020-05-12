@@ -9,6 +9,11 @@ public:
     Word(TokenType type, std::string literal)
         :Token(type, literal), lexeme(literal){}
     ~Word(){}
+    std::ostream& operator<<(std::ostream &out)
+    {
+        out << this->lexeme;
+        return out;
+    }
    std::string lexeme;
 };
 

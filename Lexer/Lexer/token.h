@@ -61,6 +61,11 @@ public:
     bool operator==(const Token & rhs){
         return rhs.Type == this->Type && rhs.Literal == this->Literal;
     }
+    virtual std::ostream& operator<<(std::ostream &out)
+    {
+        out << this->Literal;
+        return out;
+    }
 };
 
 using Table = std::unordered_map<std::string, Token>;

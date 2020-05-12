@@ -12,7 +12,7 @@ add_library(Parser STATIC
 
 target_compile_definitions(Parser PRIVATE PARSER_LIBRARY)
 include_directories(
-    "/home/beesafe/Documents/Source Code/Prj/Qt_Creator/BS/Lexer/Lexer"
-    "/home/beesafe/Documents/Source Code/Prj/Qt_Creator/BS/ast/ast"
-    "/home/beesafe/Documents/Source Code/Prj/Qt_Creator/BS/Symbols/Symbols"
+    "${CMAKE_SOURCE_DIR}/../Lexer/Lexer"
+    "${CMAKE_SOURCE_DIR}/../ast/ast"
+    "${CMAKE_SOURCE_DIR}/../Symbols/Symbols"
     )

@@ -175,6 +175,7 @@ bool Lexer::isLetter(char character)
     return std::isalpha(character) || character == '_' ? true : false;
 }
 
+
 bool Lexer::isDigit(char character)
 {
     return std::isdigit(character) ? true : false;
@@ -183,7 +184,7 @@ bool Lexer::isDigit(char character)
 std::string Lexer::readIdent()
 {
     int pos = position;
-    while(isLetter(curChar)){
+    while(isLetter(curChar) || std::isalnum(curChar)){
         readChar();
     }
     return input.substr(pos, position - pos);
