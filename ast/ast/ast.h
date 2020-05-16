@@ -1,12 +1,11 @@
 #ifndef AST_H
 #define AST_H
-#include"type.h"
 #include"token.h"
 #include<vector>
 #include<ostream>
 #include<sstream>
 
-using namespace symbols;
+//using namespace symbols;
 using namespace token;
 using std::vector;
 
@@ -44,16 +43,13 @@ struct Node{
 };
 
 struct Expr : Node {
-    type_ptr type;
     Expr(int line)
-        :Node(line), type(nullptr) {}
-    Expr():type(nullptr){}
+        :Node(line){}
+    Expr(){}
     virtual ~Expr(){
-        delete  type;
+
     }
 
-    Expr(type_ptr t, int line)
-        :Node(line), type{t}{}
     virtual std::string toString() const = 0;
     friend std::ostream& operator<<(std::ostream &out, Expr const *obj)
     {
@@ -65,8 +61,8 @@ struct Expr : Node {
 struct BooleanExpr : Expr {
     Token* tok;
     bool value;
-    BooleanExpr(Token* t, int line)
-        :Expr(Type::Bool, line), tok{t}{}
+    BooleanExpr(Token* t, bool v, int line)
+        :Expr(line), tok{t}, value{v}{}
     ~BooleanExpr(){
         delete  tok;
     }
@@ -147,8 +143,6 @@ struct Program : Node {
 struct Identifier : Expr{
     Token* tok;
     Expr* value;
-    Identifier(Token* t, Expr* v, int line)
-        :Expr(v->type, line), tok{t}{}
     Identifier(Token* t, int line)
         :Expr(line), tok{t}{}
     ~Identifier(){
@@ -185,7 +179,7 @@ struct Number :  Expr {
     Token* tok;
     int value;
     Number(Token* t, int v, int line)
-        :Expr(Type::Int, line), tok{t}, value{v}{}
+        :Expr(line), tok{t}, value{v}{}
     ~Number(){
         delete  tok;
     }
@@ -450,7 +444,7 @@ struct WhileStmt: Stmt {
 
 struct IfStmt: Stmt {
     Token* tok;
-    BooleanExpr* condition;
+    Expr* condition;
     BlockStmt* body;
     BlockStmt* alternative;
     IfStmt(Token* token, int line)

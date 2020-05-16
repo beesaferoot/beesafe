@@ -1,8 +1,5 @@
 #include "ast.h"
 
-
-
-
 std::string ast::BlockStmt::toString() const {
     std::ostringstream msg;
     msg << "{" << std::endl;

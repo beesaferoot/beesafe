@@ -4,7 +4,6 @@
 #include"token.h"
 #include"ast.h"
 #include"Number.h"
-#include"range.h"
 #include<iostream>
 #include<cassert>
 #include<stack>
@@ -14,7 +13,6 @@
 
 using namespace lexer;
 using namespace ast;
-using namespace symbols;
 using std::cerr;
 using std::cout;
 using std::endl;
@@ -46,6 +44,7 @@ public:
     ExpressionStmt* parseExpressionStatement();
     Expr* parseExpression();
     Expr* parseFunctionLiteral();
+    Expr* parseBoolean();
     RangeExpr* parseRangeExpression();
     bool peekTokenIs(TokenType);
     bool expectPeek(TokenType);

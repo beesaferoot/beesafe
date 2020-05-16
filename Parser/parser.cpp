@@ -1,7 +1,7 @@
 #include "parser.h"
 using namespace parser;
 
-std::ostringstream message;
+
 unordered_map<TokenType, PRECENDENCE> Parser::precendences = {
    {TokenType::PLUS, PRECENDENCE::ADD},
    {TokenType::MINUS, PRECENDENCE::SUB},
@@ -115,6 +115,7 @@ ForStmt* Parser::parserForStatement()
 
 RangeExpr* Parser::parseRangeExpression()
 {
+    std::ostringstream message;
     if(!expectPeek(TokenType::LPAREN)){
         message << "expected '('"
              << " found " << peekToken->Literal;
@@ -145,13 +146,13 @@ RangeExpr* Parser::parseRangeExpression()
              << " found " << peekToken->Literal;
         throw SyntaxError(message.str());
     }
-    expr->type = new RangeGen(expr->init_point, expr->end_point);
     return expr;
 
 }
 
 BlockStmt* Parser::parseBlockStatement()
 {
+    std::ostringstream message;
     BlockStmt* stmt = new BlockStmt();
     if(!expectPeek(TokenType::LBRACE)){
         message << "expected '{'"
@@ -159,19 +160,23 @@ BlockStmt* Parser::parseBlockStatement()
         throw SyntaxError(message.str());
     }
     stmt->tok = curToken;
-    //TODO handle case when peek token is EOB
     while(!peekTokenIs(TokenType::RBRACE) && !peekTokenIs(TokenType::EOB)){
         nextToken();
         auto sptr = parseStatement();
         if(sptr != nullptr)
             stmt->Stmts.push_back(sptr);
     }
-    nextToken();
+    if(!expectPeek(TokenType::RBRACE)){
+        message << "expected '}'"
+             << " found " << peekToken->Literal;
+        throw SyntaxError(message.str());
+    }
     return stmt;
 }
 
 InitStmt* Parser::parseInitStatement()
 {
+    std::ostringstream message;
     InitStmt* stmt = new InitStmt(curToken, l->line);
     if(!expectPeek(TokenType::ID)){
         message << "expected an identifier"
@@ -191,6 +196,7 @@ InitStmt* Parser::parseInitStatement()
 
 DeclareStmt* Parser::parseDeclStatement()
 {
+    std::ostringstream message;
     DeclareStmt* stmt = new DeclareStmt(curToken, l->line);
     while(!peekTokenIs(TokenType::NEWLINE) && !peekTokenIs(TokenType::EOB))
     {
@@ -214,22 +220,20 @@ ReturnStmt* Parser::parseReturnStatement()
     ReturnStmt* stmt = new ReturnStmt(curToken, l->line);
     nextToken();
     stmt->returnValue = parseExpression();
-    if(!expectPeek(TokenType::NEWLINE)){
-        message << "expected a newline, found "
-                << "" + peekToken->Literal;
-        throw SyntaxError(message.str());
-    }
     return stmt;
 }
 
 IfStmt* Parser::parseIfStatement()
 {
+    std::ostringstream message;
     IfStmt* stmt = new IfStmt(curToken, l->line);
     if(!expectPeek(TokenType::LPAREN)){
-
+        message << "expected '('"
+             << " found " << peekToken->Literal;
+        throw SyntaxError(message.str());
     }
     nextToken();
-    stmt->condition = (BooleanExpr*) parseExpression();
+    stmt->condition = parseExpression();
     if(!expectPeek(TokenType::RPAREN)){
         message << "expected ')'"
              << " found " << peekToken->Literal;
@@ -244,15 +248,27 @@ IfStmt* Parser::parseIfStatement()
     return  stmt;
 }
 
+Expr* Parser::parseBoolean()
+{
+    if(curTokenIs(TokenType::TRUE))
+        return new BooleanExpr(curToken, true, l->line);
+    return new BooleanExpr(curToken, false, l->line);
+}
+
 FunctionStmt* Parser::parseFunctionStatement()
 {
     FunctionStmt* stmt = new FunctionStmt(curToken, l->line);
     stmt->Expression = parseFunctionLiteral();
+    auto function = static_cast<FunctionLiteral*>(stmt->Expression);
+    if(function->header == nullptr){
+        throw SyntaxError("function statement requires a name");
+    }
     return stmt;
 }
 
 vector<Identifier*> Parser::parseFunctionParameters()
 {
+        std::ostringstream message;
         vector<Identifier*> idents;
         while(!peekTokenIs(TokenType::RPAREN)){
 
@@ -274,6 +290,7 @@ vector<Identifier*> Parser::parseFunctionParameters()
 
 Expr* Parser::parseFunctionLiteral()
 {
+    std::ostringstream message;
     FunctionLiteral* expr = new FunctionLiteral(curToken, l->line);
     if(!peekTokenIs(TokenType::ID) && !peekTokenIs(TokenType::LPAREN)){
         message << "expected an identifier"
@@ -320,7 +337,6 @@ ExpressionStmt* Parser::parseExpressionStatement()
 {
     ExpressionStmt* stmt = new ExpressionStmt(curToken, l->line);
     stmt->Expression = parseExpression();
-    nextToken();
     return  stmt;
 }
 
@@ -357,6 +373,7 @@ void Parser::E()
 
 void Parser::produce()
 {
+    std::ostringstream message;
     switch (curToken->Type) {
           case TokenType::NUM:
                Operands.push(mkLeaf(curToken));
@@ -379,6 +396,12 @@ void Parser::produce()
               break;
           case TokenType::LITERAL:
               Operands.push(mkLeaf(curToken));
+              break;
+          case TokenType::TRUE:
+              Operands.push(parseBoolean());
+              break;
+          case TokenType::FALSE:
+              Operands.push(parseBoolean());
               break;
           case TokenType::LPAREN:
                nextToken();
@@ -409,6 +432,7 @@ void Parser::produce()
 
 Expr* Parser::mkLeaf(Token* t)
 {
+    std::ostringstream message;
     switch (t->Type) {
         case TokenType::NUM:
          {
@@ -434,6 +458,7 @@ Expr* Parser::mkLeaf(Token* t)
 
 Expr* Parser::mkNode(Operator* op, Expr* e1, Expr* e2)
 {
+    std::ostringstream message;
     switch (op->Type) {
         case TokenType::PLUS:
              {

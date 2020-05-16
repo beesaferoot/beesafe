@@ -8,6 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_library(Parser STATIC
   parser.cpp
+  parser.h
 )
 
 target_compile_definitions(Parser PRIVATE PARSER_LIBRARY)
