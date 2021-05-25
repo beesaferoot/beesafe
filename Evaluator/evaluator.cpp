@@ -4,19 +4,23 @@ using namespace evaluator;
 
 BoolObject* NATIVE_TRUE = new BoolObject(true);
 BoolObject* NATIVE_FALSE = new BoolObject(false);
-NullObject* NATIVE_NULL = new NullObject();
+
+Object* NATIVE_NULL = new NullObject();
 
 Evaluator::Evaluator()
 {
-}
 
+}
+Evaluator::~Evaluator()
+{
+    delete NATIVE_TRUE;
+    delete NATIVE_FALSE;
+    delete NATIVE_NULL;
+}
 
 Object* Evaluator::Eval(Node* node, Env* env)
 {
-   if(Program* program = dynamic_cast<Program*>(node)){
-      return evalProgram(program, env);
-   }
-   else if(BlockStmt* block = dynamic_cast<BlockStmt*>(node)){
+   if(BlockStmt* block = dynamic_cast<BlockStmt*>(node)){
        return evalBlockStatement(block, env);
    }
    else if(IfStmt* stmt = dynamic_cast<IfStmt*>(node)){
@@ -49,7 +53,7 @@ Object* Evaluator::Eval(Node* node, Env* env)
        }
        auto args = evalExpressions(expr->arguments, env);
        if(args.size() == 1 && isError(args[0])){
-           return args[0];
+            return args[0];
        }
        return applyFunction(function, args);
    }
@@ -66,7 +70,10 @@ Object* Evaluator::Eval(Node* node, Env* env)
        return new StringObject(literal->Literal);
    }
    else if(Number* num = dynamic_cast<Number*>(node)){
-      return new IntObject(num->value);
+       return new IntObject(num->value);
+   }
+   else if(NullExpr* null = dynamic_cast<NullExpr*>(node)){
+       return NATIVE_NULL;
    }
    else if(BooleanExpr* expr = dynamic_cast<BooleanExpr*>(node)){
        return nativeBooleanObject(expr->value);
@@ -91,44 +98,45 @@ Object* Evaluator::Eval(Node* node, Env* env)
    return nullptr;
 }
 
-Object* Evaluator::evalProgram(Program *program, Env* env){
-    Object* result{NATIVE_NULL};
+list<Object*> Evaluator::evalProgram(Program *program, Env* env){
+    list<Object*> evaluatedStmts;
     for(auto stmt : program->Stmts){
-        result = Eval(stmt, env);
+        Object* result = Eval(stmt, env);
         if(auto res = dynamic_cast<ReturnObject*>(result)){
-            return res->value;
-        }else if(dynamic_cast<ErrorObject*>(result) != nullptr){
-            return result;
+            result =  res->value;
         }
+        evaluatedStmts.push_back(result);
     }
-    return result;
+    return evaluatedStmts;
 }
 
 Object* Evaluator::evalBlockStatement(BlockStmt *block, Env* env){
     auto scope = NewEnvironment(env);
-    Object* result{NATIVE_NULL};
+    if(scope->is_recurseLimitExceeded())
+        return newError("RecursionLimitExceeded: ", "recursion depth exceeded limit");
+
     for(auto stmt : block->Stmts){
-        result = Eval(stmt, scope);
-        if( result != nullptr){
+        Object* result = Eval(stmt, scope);
+        if(result != nullptr){
             auto type = result->type();
             if(type == Types::RETURNTYPE || type == Types::ERRORTYPE){
                 return result;
             }
         }
     }
-    return result;
+    return NATIVE_NULL;
 }
 
-Object* Evaluator::evalInitStatement(InitStmt *stmt, Env *env){
+Object* Evaluator::evalInitStatement(InitStmt *stmt,  Env* env){
     auto value = Eval(stmt->value, env);
     if(isError(value)){
         return value;
     }
     env->put(stmt->variable->toString(), value);
-    return  NATIVE_NULL;
+    return NATIVE_NULL;
 }
 
-Object* Evaluator::evalIdentifier(Identifier *ident, Env *env){
+Object* Evaluator::evalIdentifier(Identifier *ident, Env* env){
     auto value = env->get(ident->toString());
     if(value == nullptr){
         auto message = "name " + ident->toString() + " not defined";
@@ -137,7 +145,7 @@ Object* Evaluator::evalIdentifier(Identifier *ident, Env *env){
     return value;
 }
 
-Object* Evaluator::evalDecalareStatement(DeclareStmt *stmt, Env *env)
+Object* Evaluator::evalDecalareStatement(DeclareStmt *stmt, Env* env)
 {
     for(auto ident : stmt->varList){
         auto result = Eval(ident, env);
@@ -151,18 +159,18 @@ Object* Evaluator::evalDecalareStatement(DeclareStmt *stmt, Env *env)
     return NATIVE_NULL;
 }
 
-Object* Evaluator::evalFunctionStmt(FunctionStmt *stmt, Env *env){
-    auto function = static_cast<FunctionLiteral*>(stmt->Expression);
+Object* Evaluator::evalFunctionStmt(FunctionStmt *stmt, Env* env){
+    auto function = dynamic_cast<FunctionLiteral*>(stmt->Expression);
     auto funcObj = Eval(stmt->Expression, env);
     if(isError(funcObj)){
         return funcObj;
     }
-    auto funcName = function->header->tok->Literal;
+    auto funcName = function->header->tok.Literal;
     env->put(funcName, funcObj);
     return NATIVE_NULL;
 }
 
-std::vector<Object*> Evaluator::evalExpressions(std::vector<Expr *> exps, Env *env){
+std::vector<Object*> Evaluator::evalExpressions(std::vector<Expr *> exps, Env* env){
     std::vector<Object*> result;
     for(auto e: exps){
         auto evaluated = Eval(e, env);
@@ -174,21 +182,21 @@ std::vector<Object*> Evaluator::evalExpressions(std::vector<Expr *> exps, Env *e
     return result;
 }
 
-Object* Evaluator::applyFunction(Object *obj, std::vector<Object *>args){
+Object* Evaluator::applyFunction(Object *obj, std::vector<Object*> args){
        auto function = dynamic_cast<FunctionObject*>(obj);
        if( function == nullptr){
            auto message = "'"+ obj->toString() + "'" + " object not a callable";
-           return newError("TypeError: ", message);
+
        }
        auto env = extendFunctionEnv(function, args);
        auto evaluated = evalBlockStatement(function->body, env);
        return unWrapReturnvalue(evaluated);
 }
 
-Env* Evaluator::extendFunctionEnv(FunctionObject * function, std::vector<Object*> args){
+Env* Evaluator::extendFunctionEnv(FunctionObject* function, std::vector<Object*> args){
     auto env = NewEnvironment(function->env);
     for(int paramIndex{0}; paramIndex < (int)function->parameters.size(); paramIndex++){
-        env->put(function->parameters[paramIndex]->tok->Literal, args[paramIndex]);
+        env->put(function->parameters[paramIndex]->tok.Literal, args[paramIndex]);
     }
     return env;
 }
@@ -223,18 +231,18 @@ Object* Evaluator::evalIfStatement(IfStmt *stmt, Env* env){
     }else if(stmt->alternative != nullptr){
         return Eval(stmt->alternative, env);
     }
-    return NATIVE_NULL;
+   return NATIVE_NULL;
 }
 
-Object* Evaluator::evalUniaryExpression(Token* op, Object * rightValue){
+Object* Evaluator::evalUniaryExpression(Token& op, Object * rightValue){
 
-    switch (op->Type) {
+    switch (op.Type) {
     case BANG:
         return evalNotOperator(rightValue);
     case UMINUS:
         return evalUniaryMinusOperator(rightValue);
     default:
-        return newError("Unknown Operator: ", op->Literal);
+        return newError("Unknown Operator: ", op.Literal);
     }
 }
 
@@ -244,7 +252,7 @@ Object* Evaluator::evalNotOperator(Object *rightExpr){
     }else if(rightExpr == NATIVE_FALSE){
         return NATIVE_TRUE;
     }else if(rightExpr == NATIVE_NULL){
-        return NATIVE_TRUE;
+       return NATIVE_NULL;
     }
     return NATIVE_FALSE;
 }
@@ -254,71 +262,67 @@ Object* Evaluator::evalUniaryMinusOperator(Object *rightExpr){
         auto message = "-" + rightExpr->toString();
         return newError("TypeError: ", message);
     }
-    auto value = static_cast<IntObject*>(rightExpr)->value;
+    auto value = dynamic_cast<IntObject*>(rightExpr)->value;
     return new IntObject(-value);
 }
 
-Object* Evaluator::evalBinaryExpression(Token* op, Object *leftExpr, Object *rightExpr){
+Object* Evaluator::evalBinaryExpression(Token& op, Object *leftExpr, Object *rightExpr){
 
    if(leftExpr->type() == Types::INTTYPE && rightExpr->type() == Types::INTTYPE){
        return evalIntergerBinaryExpression(op, leftExpr, rightExpr);
    }else if( leftExpr->type() == Types::STRINGTYPE && rightExpr->type() == Types::STRINGTYPE){
        return evalStringConcatenate(op, leftExpr, rightExpr);
    }
-   else if( op->Type == TokenType::EQ) {
+   else if( op.Type == TokenType::EQ) {
        return nativeBooleanObject(leftExpr == rightExpr);
-   }else if( op->Type == TokenType::NOT_EQ){
+   }else if( op.Type == TokenType::NOT_EQ){
        return nativeBooleanObject(leftExpr != rightExpr);
    }else if(leftExpr->type() != rightExpr->type()){
-       auto message = leftExpr->toString() + " " + op->Literal + " " + rightExpr->toString();
+       auto message = leftExpr->toString() + " " + op.Literal + " " + rightExpr->toString();
        return newError("TypeError: ", message);
    }
-   auto message = leftExpr->toString() + " " + op->Literal + " " + rightExpr->toString();
+   auto message = leftExpr->toString() + " " + op.Literal + " " + rightExpr->toString();
    return newError("Unknown Operator: ", message);
 }
 
-Object* Evaluator::evalStringConcatenate(Token *op, Object *left, Object *right){
-    auto leftString = static_cast<StringObject*>(left);
-    auto rightValue = static_cast<StringObject*>(right)->value;
-    switch (op->Type) {
+Object* Evaluator::evalStringConcatenate(Token& op, Object *left, Object *right){
+    auto leftValue = dynamic_cast<StringObject*>(left)->value;
+    auto rightValue = dynamic_cast<StringObject*>(right)->value;
+    switch (op.Type) {
     case TokenType::PLUS:
     {
-        leftString->value += rightValue;
-        return leftString;
+        return new StringObject(leftValue + rightValue);
     }
     case TokenType::EQ:
-        return nativeBooleanObject(leftString->value == rightValue);
+        return nativeBooleanObject(leftValue  == rightValue);
     case TokenType::NOT_EQ:
-        return nativeBooleanObject(leftString->value != rightValue);
+        return nativeBooleanObject(leftValue  != rightValue);
     case TokenType::LT:
-       return nativeBooleanObject(leftString->value < rightValue);
+        return nativeBooleanObject(leftValue  < rightValue);
     case TokenType::GT:
-       return nativeBooleanObject(leftString->value > rightValue);
+        return nativeBooleanObject(leftValue  > rightValue);
     default:
-        return newError("Unknown Operator: ", op->Literal + " invalid operation on type string");
+        return newError("Unknown Operator: ", op.Literal + " invalid operation on type string");
     }
 }
-Object* Evaluator::evalIntergerBinaryExpression(Token* op, Object *leftExpr, Object *rightExpr){
 
-    auto leftValue = static_cast<IntObject*>(leftExpr)->value;
-    auto rightValue = static_cast<IntObject*>(rightExpr)->value;
-    switch (op->Type) {
+Object* Evaluator::evalIntergerBinaryExpression(Token& op, Object* leftExpr, Object* rightExpr){
+
+    auto leftValue = dynamic_cast<IntObject*>(leftExpr)->value;
+    auto rightValue = dynamic_cast<IntObject*>(rightExpr)->value;
+    switch (op.Type) {
      case TokenType::PLUS:
         return new IntObject(leftValue + rightValue);
-        break;
      case TokenType::MINUS:
         return new IntObject(leftValue - rightValue);
-        break;
      case TokenType::ASTERISK:
         return new IntObject(leftValue * rightValue);
-        break;
      case TokenType::DIV:
         {
             if(rightValue == 0)
                return newError("ZeroDivisionError: ",  "division by zero");
             return new IntObject(leftValue / rightValue);
         }
-        break;
      case TokenType::EQ:
         return nativeBooleanObject(leftValue == rightValue);
      case TokenType::NOT_EQ:
@@ -332,7 +336,7 @@ Object* Evaluator::evalIntergerBinaryExpression(Token* op, Object *leftExpr, Obj
      case TokenType::GT_EQ:
         return nativeBooleanObject(leftValue >= rightValue);
      default:
-        return newError("Unknown Operator: ", op->Literal);
+        return newError("Unknown Operator: ", op.Literal);
     }
 }
 
@@ -342,7 +346,7 @@ BoolObject* Evaluator::nativeBooleanObject(bool value){
     return NATIVE_FALSE;
 }
 
-bool Evaluator::isTruthy(Object *obj){
+bool Evaluator::isTruthy(Object * obj){
     if(obj == NATIVE_NULL)
         return false;
     else if( obj == NATIVE_TRUE)
@@ -357,7 +361,7 @@ ErrorObject* Evaluator::newError(std::string type, std::string message)
     return new ErrorObject(type, message);
 }
 
-bool Evaluator::isError(Object *obj){
+bool Evaluator::isError(Object * obj){
     if(obj->type() == Types::ERRORTYPE)
         return true;
     return false;

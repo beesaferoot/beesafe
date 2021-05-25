@@ -23,9 +23,10 @@ public:
         reserve(Word(TokenType::FOR, "for"));
         reserve(Word(TokenType::RETURN, "return"));
         reserve(Word(TokenType::IN, "in"));
+        reserve(Word(TokenType::_NULL, "null"));
     };
     static Lexer* New(std::string input);
-    token::Token* NextToken();
+    token::Token NextToken();
     void skipWhiteSpace();
     void readChar();
     char peekChar();
@@ -34,7 +35,7 @@ public:
     std::string readIdent();
     std::string readInt();
     std::string readStringLiteral(char);
-    void reserve(Word t);
+    void reserve(Word);
     void setInputBuf(std::string input )
     {
         readPosition = 0;

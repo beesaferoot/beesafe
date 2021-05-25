@@ -30,7 +30,7 @@ std::string ast::Program::toString() const {
 
 std::string ast::Identifier::toString() const {
     std::ostringstream msg;
-    msg << tok->Literal;
+    msg << tok.Literal;
     return msg.str();
 };
 
@@ -59,9 +59,9 @@ std::string ast::ForStmt::toString() const {
 
 std::string ast::RangeExpr::toString() const {
     std::ostringstream msg;
-    msg << std::to_string(init_point);
+    msg << std::to_string(init_value);
     msg << "..";
-    msg << std::to_string(end_point);
+    msg << std::to_string(end_value);
     return msg.str();
 };
 
@@ -292,4 +292,9 @@ std::string ast::UniarySub::toString() const
     std::ostringstream msg;
     msg << "(-" << RightOp << ")";
     return msg.str();
+}
+
+std::string ast::NullExpr::toString() const
+{
+   return "null";
 }

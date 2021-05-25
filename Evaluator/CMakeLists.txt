@@ -9,6 +9,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_library(Evaluator STATIC
   evaluator.cpp
   evaluator.h
+  gc.h
 )
 
 target_compile_definitions(Evaluator PRIVATE EVALUATOR_LIBRARY)

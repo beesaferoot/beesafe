@@ -14,7 +14,7 @@ public:
         out << std::to_string(this->value);
         return out;
     }
-    const int value;
+    int value;
 };
 
 #endif // NUMBER_H

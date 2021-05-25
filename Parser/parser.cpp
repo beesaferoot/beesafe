@@ -1,4 +1,5 @@
 #include "parser.h"
+#include <memory>
 using namespace parser;
 
 
@@ -7,7 +8,14 @@ unordered_map<TokenType, PRECENDENCE> Parser::precendences = {
    {TokenType::MINUS, PRECENDENCE::SUB},
    {TokenType::UMINUS, PRECENDENCE::USUB},
    {TokenType::ASTERISK, PRECENDENCE::MUL},
-   {TokenType::DIV, PRECENDENCE::DIV}
+   {TokenType::DIV, PRECENDENCE::DIV},
+   {TokenType::EQ, PRECENDENCE::EQ},
+    {TokenType::NOT_EQ, PRECENDENCE::NT_EQ},
+    {TokenType::LT_EQ, PRECENDENCE::LT_EQ},
+    {TokenType::GT_EQ, PRECENDENCE::GT_EQ},
+    {TokenType::GT, PRECENDENCE::GT},
+    {TokenType::LT, PRECENDENCE::LT},
+    {TokenType::ASSIGN, PRECENDENCE::ASSIGN}
 };
 
 unordered_map<TokenType, bool> Parser::BinaryOperators = {
@@ -31,8 +39,6 @@ Parser::Parser(Lexer* l)
 
 Parser::~Parser()
 {
-    delete curToken;
-    delete peekToken;
     delete l;
 }
 
@@ -48,23 +54,25 @@ void Parser::nextToken()
 {
 
     curToken = peekToken;
-    peekToken = nullptr;
     peekToken = l->NextToken();
 
 }
 
 Stmt* Parser::parseStatement()
 {
-    switch (curToken->Type) {
+    switch (curToken.Type) {
        case TokenType::IF:
            return parseIfStatement();
        case TokenType::FOR:
-           return parserForStatement();
+           return parseForIntRangeStatement();
        case TokenType::DECLARE:
            return parseDeclStatement();
        case TokenType::INIT:
            return parseInitStatement();
        case TokenType::DEFINE:
+           if(peekTokenIs(TokenType::LBRACE)){
+               return parseExpressionStatement();
+           }
            return parseFunctionStatement();
        case TokenType::RETURN:
             return parseReturnStatement();
@@ -80,7 +88,7 @@ Program* Parser::parseProgram()
     Program* program = new Program();
     program->Stmts = vector<Stmt*>{};
 
-    while(!curTokenIs(TokenType::EOB))
+    while(!curTokenIs(TokenType::EOB) && !hasErrors())
     {
         auto stmt = parseStatement();
         if (stmt != nullptr){
@@ -91,60 +99,71 @@ Program* Parser::parseProgram()
     return program;
 }
 
-ForStmt* Parser::parserForStatement()
+ForStmt* Parser::parseForIntRangeStatement()
 {
-    ForStmt* stmt = new ForStmt(curToken, l->line);
+    ForStmt* stmt(new ForStmt(curToken, l->line));
     std::ostringstream message;
     if(!expectPeek(TokenType::ID)){
         message << "expected an identifier"
-             << " found " << peekToken->Literal;
-        throw SyntaxError(message.str());
+             << " found " << peekToken.Literal;
+        errors.push_back(message.str());
+        delete stmt;
+        return nullptr;
     }
 
     stmt->target = new Identifier(curToken, l->line);
     if(!expectPeek(TokenType::IN)){
         message << "expected 'in'"
-             << " found " << peekToken->Literal;
-        throw SyntaxError(message.str());
+             << " found " << peekToken.Literal;
+        errors.push_back(message.str());
+        delete stmt;
+        return nullptr;
     }
-    stmt->iter = parseRangeExpression();
+    stmt->iter = parseIntRangeExpression();
     stmt->body = parseBlockStatement();
     nextToken();
     return stmt;
 }
 
-RangeExpr* Parser::parseRangeExpression()
+RangeExpr* Parser::parseIntRangeExpression()
 {
     std::ostringstream message;
     if(!expectPeek(TokenType::LPAREN)){
         message << "expected '('"
-             << " found " << peekToken->Literal;
-        throw SyntaxError(message.str());
+             << " found " << peekToken.Literal;
+        errors.push_back(message.str());
+        return nullptr;
     }
     RangeExpr* expr = new RangeExpr(curToken,l->line);
     if(!expectPeek(TokenType::NUM)){
         message << "expected a number"
-             << " found " << peekToken->Literal;
-        throw SyntaxError(message.str());
+             << " found " << peekToken.Literal;
+        errors.push_back(message.str());
+        delete expr;
+        return nullptr;
     }
-    Num* num_ptr = static_cast<Num*>(curToken);
-    expr->init_point = num_ptr->value;
+    expr->init_value = stoi(curToken.Literal);
     if(!expectPeek(TokenType::RANGE)){
         message << "expected '..'"
-             << " found " << peekToken->Literal;
-        throw SyntaxError(message.str());
+             << " found " << peekToken.Literal;
+        errors.push_back(message.str());
+        delete expr;
+        return nullptr;
     }
     if(!expectPeek(TokenType::NUM)){
         message << "expected a number"
-             << " found " << peekToken->Literal;
-        throw SyntaxError(message.str());
+             << " found " << peekToken.Literal;
+        errors.push_back(message.str());
+        delete expr;
+        return nullptr;
     }
-    num_ptr = static_cast<Num*>(curToken);
-    expr->end_point = num_ptr->value;
+    expr->end_value = stoi(curToken.Literal);
     if(!expectPeek(TokenType::RPAREN)){
         message << "expected ')'"
-             << " found " << peekToken->Literal;
-        throw SyntaxError(message.str());
+             << " found " << peekToken.Literal;
+        errors.push_back(message.str());
+        delete expr;
+        return nullptr;
     }
     return expr;
 
@@ -153,13 +172,14 @@ RangeExpr* Parser::parseRangeExpression()
 BlockStmt* Parser::parseBlockStatement()
 {
     std::ostringstream message;
-    BlockStmt* stmt = new BlockStmt();
+    BlockStmt* stmt = new BlockStmt(curToken);
     if(!expectPeek(TokenType::LBRACE)){
         message << "expected '{'"
-             << " found " << peekToken->Literal;
-        throw SyntaxError(message.str());
+             << " found " << peekToken.Literal;
+        errors.push_back(message.str());
+        delete stmt;
+        return nullptr;
     }
-    stmt->tok = curToken;
     while(!peekTokenIs(TokenType::RBRACE) && !peekTokenIs(TokenType::EOB)){
         nextToken();
         auto sptr = parseStatement();
@@ -168,8 +188,10 @@ BlockStmt* Parser::parseBlockStatement()
     }
     if(!expectPeek(TokenType::RBRACE)){
         message << "expected '}'"
-             << " found " << peekToken->Literal;
-        throw SyntaxError(message.str());
+             << " found " << peekToken.Literal;
+        errors.push_back(message.str());
+        delete stmt;
+        return nullptr;
     }
     return stmt;
 }
@@ -180,14 +202,18 @@ InitStmt* Parser::parseInitStatement()
     InitStmt* stmt = new InitStmt(curToken, l->line);
     if(!expectPeek(TokenType::ID)){
         message << "expected an identifier"
-             << " found " << peekToken->Literal;
-        throw SyntaxError(message.str());
+             << " found " << peekToken.Literal;
+        errors.push_back(message.str());
+        delete stmt;
+        return nullptr;
     }
     stmt->variable = new Identifier(curToken, l->line);;
     if(!expectPeek(TokenType::ASSIGN)){
         message << "expected '='"
-             << " found " << peekToken->Literal;
-        throw SyntaxError(message.str());
+             << " found " << peekToken.Literal;
+        errors.push_back(message.str());
+        delete stmt;
+        return nullptr;
     }
     nextToken();
     stmt->value = parseExpression();
@@ -207,8 +233,10 @@ DeclareStmt* Parser::parseDeclStatement()
                 nextToken();
             }
         }else{
-            message << "expected an identifier, found " << peekToken->Literal;
-            throw  SyntaxError(message.str());
+            message << "expected an identifier, found " << peekToken.Literal;
+            errors.push_back(message.str());
+            delete stmt;
+            return nullptr;
         }
     }
     nextToken();
@@ -229,15 +257,17 @@ IfStmt* Parser::parseIfStatement()
     IfStmt* stmt = new IfStmt(curToken, l->line);
     if(!expectPeek(TokenType::LPAREN)){
         message << "expected '('"
-             << " found " << peekToken->Literal;
-        throw SyntaxError(message.str());
+             << " found " << peekToken.Literal;
+        errors.push_back(message.str());
+        delete stmt;
+        return nullptr;
     }
     nextToken();
     stmt->condition = parseExpression();
     if(!expectPeek(TokenType::RPAREN)){
         message << "expected ')'"
-             << " found " << peekToken->Literal;
-        throw SyntaxError(message.str());
+             << " found " <<  (peekToken.Literal.size() > 0 ? peekToken.Literal : "nothing");
+
     }
     stmt->body = parseBlockStatement();
     if(peekTokenIs(TokenType::ELSE)){
@@ -255,13 +285,20 @@ Expr* Parser::parseBoolean()
     return new BooleanExpr(curToken, false, l->line);
 }
 
+Expr* Parser::parseNull()
+{
+    return new NullExpr(curToken, l->line);
+}
+
 FunctionStmt* Parser::parseFunctionStatement()
 {
     FunctionStmt* stmt = new FunctionStmt(curToken, l->line);
     stmt->Expression = parseFunctionLiteral();
-    auto function = static_cast<FunctionLiteral*>(stmt->Expression);
+    auto function = dynamic_cast<FunctionLiteral*>(stmt->Expression);
     if(function->header == nullptr){
-        throw SyntaxError("function statement requires a name");
+        errors.push_back("function statement requires a name");
+        delete stmt;
+        return nullptr;
     }
     return stmt;
 }
@@ -281,8 +318,8 @@ vector<Identifier*> Parser::parseFunctionParameters()
                 }
 
             }else{
-                message << "expected an identifier, found " << peekToken->Literal;
-                throw  SyntaxError(message.str());
+                message << "expected an identifier, found " << peekToken.Literal;
+                errors.push_back(message.str());
             }
         }
         return idents;
@@ -295,8 +332,10 @@ Expr* Parser::parseFunctionLiteral()
     if(!peekTokenIs(TokenType::ID) && !peekTokenIs(TokenType::LPAREN)){
         message << "expected an identifier"
                 << "  or '('"
-             << " found " << peekToken->Literal;
-        throw SyntaxError(message.str());
+             << " found " << (peekToken.Literal.size() > 0 ? peekToken.Literal : "nothing");
+        errors.push_back(message.str());
+        delete expr;
+        return nullptr;
     }
     nextToken();
     if(curTokenIs(TokenType::LPAREN)){
@@ -307,8 +346,10 @@ Expr* Parser::parseFunctionLiteral()
          expr->header = new Identifier(curToken, l->line);
          if(!expectPeek(TokenType::LPAREN)){
              message << "expected '('"
-                  << " found " << peekToken->Literal;
-             throw SyntaxError(message.str());
+                  << " found " << (peekToken.Literal.size() > 0 ? peekToken.Literal : "nothing");
+             errors.push_back(message.str());
+             delete expr;
+             return nullptr;
          }
          expr->parameters = parseFunctionParameters();
     }
@@ -337,44 +378,48 @@ ExpressionStmt* Parser::parseExpressionStatement()
 {
     ExpressionStmt* stmt = new ExpressionStmt(curToken, l->line);
     stmt->Expression = parseExpression();
-    return  stmt;
+    if(stmt->Expression != nullptr)
+        return  stmt;
+    delete stmt;
+    return nullptr;
 }
 
 Expr* Parser::parseExpression()
 {
-    E();
+    expand();
+    if(hasErrors())
+        return nullptr;
     auto e = Operands.top();
     Operands.pop();
     return e;
-
 }
 
-void Parser::E()
+void Parser::expand()
 {
-    Operators.push({PRECENDENCE::BASE, nullptr});
+    Operators.push({PRECENDENCE::BASE, Operator(TokenType::_NULL, "")});
     produce();
-    auto e = binary(peekToken->Type);
-    while(e != nullptr)
+    auto e = binary(peekToken.Type);
+    while(e.Type != TokenType::ERROR)
     {
         nextToken();
         pushOperator(e, true);
         nextToken();
         produce();
-        e = binary(peekToken->Type);
+        e = binary(peekToken.Type);
     }
-    while(Operators.top().second != nullptr)
+    while(Operators.top().second.Type != TokenType::ERROR &&
+          Operators.top().second.Type != TokenType::_NULL)
     {
         popOperator(true);
     }
     Operators.pop();
-
 
 }
 
 void Parser::produce()
 {
     std::ostringstream message;
-    switch (curToken->Type) {
+    switch (curToken.Type) {
           case TokenType::NUM:
                Operands.push(mkLeaf(curToken));
                break;
@@ -383,7 +428,12 @@ void Parser::produce()
               if(peekTokenIs(TokenType::LPAREN)){
                   nextToken();
                   Operands.push(parseCallExpression());
-                  Operators.push({PRECENDENCE::CALL, new Operator(TokenType::CALL, "()")});
+                  Operators.push({PRECENDENCE::CALL, Operator(TokenType::CALL, "()")});
+              }
+              if(peekTokenIs(TokenType::ID)){
+                  message << "invalid syntax"
+                             << " found " << peekToken.Literal;
+                  errors.push_back(message.str());
               }
               break;
           case TokenType::DEFINE:
@@ -391,7 +441,7 @@ void Parser::produce()
               if(peekTokenIs(TokenType::LPAREN)){
                   nextToken();
                   Operands.push(parseCallExpression());
-                  Operators.push({PRECENDENCE::CALL, new Operator(TokenType::CALL, "()")});
+                  Operators.push({PRECENDENCE::CALL, Operator(TokenType::CALL, "()")});
               }
               break;
           case TokenType::LITERAL:
@@ -405,61 +455,62 @@ void Parser::produce()
               break;
           case TokenType::LPAREN:
                nextToken();
-               E();
+               expand();
                if(!expectPeek(TokenType::RPAREN))
                {
                    message << "expected ')'"
-                        << " found " << peekToken->Literal;
-                   throw SyntaxError(message.str());
+                        << " found " << (peekToken.Literal.size() > 0 ? peekToken.Literal : "nothing");
+                   errors.push_back(message.str());
                }
                break;
+         case TokenType::_NULL:
+            Operands.push(parseNull());
+            break;
          default:
-            auto e = uniary(curToken->Type);
-            if(e != nullptr){
+            auto e = uniary(curToken.Type);
+            if(e.Type != TokenType::ERROR){
                 pushOperator(e, false);
                 nextToken();
                 produce();
                 popOperator(false);
                 break;
             }else{
-                message << "invalid expression"
-                     << " found " << curToken->Literal;
-                throw SyntaxError(message.str());
+                message << "invalid expression";
+                errors.push_back(message.str());
             }
 
     }
 }
 
-Expr* Parser::mkLeaf(Token* t)
+Expr* Parser::mkLeaf(Token &t)
 {
     std::ostringstream message;
-    switch (t->Type) {
+    switch (t.Type) {
         case TokenType::NUM:
          {
-            auto n = static_cast<Num*>(t);
-            return new Number(n, n->value, l->line);
+            return new Number(t, stoi(t.Literal), l->line);
          }
          case TokenType::ID:
           {
-             auto id = static_cast<Word*>(t);
-             return new Identifier(id, l->line);
+             return new Identifier(t, l->line);
           }
           case TokenType::LITERAL:
           {
-            return new StringLiteral(curToken, l->line);
+            return new StringLiteral(t, l->line);
           }
 
          default :
-            message << "couldn't parse the terminal type " << t->Literal
+            message << "couldn't parse the terminal type " << t.Literal
                  << endl;
-            throw SyntaxError(message.str());
+            errors.push_back(message.str());
+            return nullptr;
     }
 }
 
-Expr* Parser::mkNode(Operator* op, Expr* e1, Expr* e2)
+Expr* Parser::mkNode(Operator& op, Expr* e1, Expr* e2)
 {
     std::ostringstream message;
-    switch (op->Type) {
+    switch (op.Type) {
         case TokenType::PLUS:
              {
               auto add = new Add(op, l->line);
@@ -551,43 +602,44 @@ Expr* Parser::mkNode(Operator* op, Expr* e1, Expr* e2)
             }
             case TokenType::CALL:
              {
-               auto call = static_cast<CallExpression*>(e2);
+               auto call = dynamic_cast<CallExpression*>(e2);
                call->function = e1;
                return call;
              }
         default:
-             message << "couldn't parse operator type " << op->symbol
+             message << "couldn't parse operator type " << op.symbol
                    << endl;
-              throw SyntaxError(message.str());
+             errors.push_back(message.str());
+             return nullptr;
     }
 }
 
-Operator* Parser::binary(TokenType t)
+Operator Parser::binary(TokenType t)
 {
 
     if(BinaryOperators[t]){
-        return static_cast<Operator*>(peekToken);
+        return Operator(peekToken.Type, peekToken.Literal);
     }else{
-        return nullptr;
+        return Operator(TokenType::ERROR, curToken.Literal);
     }
 }
 
-Operator* Parser::uniary(TokenType t)
+Operator Parser::uniary(TokenType t)
 {
     switch (t) {
     case TokenType::MINUS:
-       return new Operator(TokenType::UMINUS, "-");
+       return Operator(TokenType::UMINUS, "-");
     case TokenType::BANG:
-        return static_cast<Operator*>(curToken);
+        return Operator(TokenType::BANG, curToken.Literal);
     default:
-        return nullptr;
+        return Operator(TokenType::ERROR, curToken.Literal);
     }
 }
 
-void Parser::pushOperator(Operator* op, bool isBinary)
+void Parser::pushOperator(Operator& op, bool isBinary)
 {
-    int pLevel = precendences[op->Type];
-    while(Operators.top().first > pLevel)
+    int pLevel = precendences[op.Type];
+    while(Operators.top().first >= pLevel)
     {
         popOperator(isBinary);
     }
@@ -604,7 +656,7 @@ void Parser::popOperator(bool isBinary)
       auto e1 = Operands.top();
       Operands.pop();
       Operands.push(mkNode(Operators.top().second, e1, e2));
-    }else{
+    }else if(Operands.size() > 0){
         auto e2 = Operands.top();
         Operands.pop();
         Operands.push(mkNode(Operators.top().second, nullptr, e2));
@@ -616,7 +668,7 @@ void Parser::popOperator(bool isBinary)
 
 bool Parser::peekTokenIs(TokenType t)
 {
-    return peekToken->Type == t;
+    return peekToken.Type == t;
 }
 
 bool Parser::expectPeek(TokenType t)
@@ -631,5 +683,15 @@ bool Parser::expectPeek(TokenType t)
 
 bool Parser::curTokenIs(TokenType t)
 {
-    return curToken->Type == t;
+    return curToken.Type == t;
+}
+
+std::vector<std::string> Parser::Errors() const {
+    return this->errors;
+}
+
+bool Parser::hasErrors() const {
+    if (errors.size() > 0)
+        return true;
+    return false;
 }

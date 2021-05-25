@@ -26,11 +26,11 @@ include_directories(
     "${CMAKE_SOURCE_DIR}/../"
     )
 target_link_libraries(TestEvaluator PRIVATE Qt5::Test
-    -L"${CMAKE_SOURCE_DIR}/../../build-Evaluator-Qt-Debug" -lEvaluator
-    -L"${CMAKE_SOURCE_DIR}/../../build-Parser-Qt-Debug" -lParser
-    -L"${CMAKE_SOURCE_DIR}/../../Lexer/build-Lexer-Qt-Debug/" -lLexer
-    -L"${CMAKE_SOURCE_DIR}/../../ast/build-ast-Qt-Debug/" -last
-    -L"${CMAKE_SOURCE_DIR}/../../Symbols/build-Symbols-Qt-Debug/" -lSymbols
+    -L"${CMAKE_SOURCE_DIR}/../../build-Evaluator-Desktop-Debug" -lEvaluator
+    -L"${CMAKE_SOURCE_DIR}/../../build-Parser-Desktop-Debug" -lParser
+    -L"${CMAKE_SOURCE_DIR}/../../Lexer/build-Lexer-Desktop-Debug/" -lLexer
+    -L"${CMAKE_SOURCE_DIR}/../../ast/build-ast-Desktop-Debug/" -last
+    -L"${CMAKE_SOURCE_DIR}/../../Symbols/build-Symbols-Desktop-Debug/" -lSymbols
     )
 
 
