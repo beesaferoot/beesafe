@@ -1,7 +1,7 @@
 #include <QtTest>
-#include"parser.h"
-#include"lexer.h"
-#include"evaluator.h"
+#include"Parser/parser.h"
+#include"Lexer/lexer.h"
+#include"Evaluator/evaluator.h"
 #include<iostream>
 
 using std::cout;

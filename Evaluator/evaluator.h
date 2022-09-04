@@ -1,12 +1,13 @@
 #ifndef EVALUATOR_H
 #define EVALUATOR_H
-#include"parser.h"
-#include"object.h"
-#include"ast.h"
+#include"Parser/parser.h"
+#include"Symbols/object.h"
+#include"ast/ast.h"
 #include<vector>
 #include "gc.h"
 
 using namespace symbols;
+using namespace ast;
 namespace  evaluator {
 
 class Evaluator
@@ -14,31 +15,31 @@ class Evaluator
 public:
     Evaluator();
     ~Evaluator();
-    static Object* Eval(Node*,  Env *);
-    static list<Object*> evalProgram(Program*, Env *);
-    static Object* evalBlockStatement(BlockStmt*, Env *);
-    static Object* evalIfStatement(IfStmt*, Env*);
-    static Object* evalInitStatement(InitStmt*, Env*);
-    static Object* evalDecalareStatement(DeclareStmt*, Env*);
-    static Object* evalFunctionStmt(FunctionStmt*, Env*);
-    static Object* evalIdentifier(Identifier*, Env*);
-    static Object* evalStringConcatenate(Token&, Object *, Object *);
-    static std::vector<Object*> evalExpressions(std::vector<Expr*>, Env*);
-    static Object* applyFunction(Object*, std::vector<Object*>);
-    static Object* evalAssignExpression(Assign*, Env*);
-    static Object* evalUniaryExpression(Token&, Object *);
-    static Object* evalBinaryExpression(Token&, Object *, Object *);
-    static Object* evalIntergerBinaryExpression(Token&, Object*, Object*);
-    static Object* evalNotOperator(Object *);
-    static Object* evalUniaryMinusOperator(Object*);
-    static BoolObject* nativeBooleanObject(bool value);
-    static bool isTruthy(Object *);
-    static bool isError(Object *);
-    static ErrorObject* newError(std::string, std::string);
+    static GCPtr<Object> Eval(Node*,  Env *);
+    static list<GCPtr<Object>> evalProgram(Program*, Env *);
+    static GCPtr<Object> evalBlockStatement(BlockStmt*, Env *);
+    static GCPtr<Object> evalIfStatement(IfStmt*, Env*);
+    static GCPtr<Object> evalInitStatement(InitStmt*, Env*);
+    static GCPtr<Object> evalDeclareStatement(DeclareStmt*, Env*);
+    static GCPtr<Object> evalFunctionStmt(FunctionStmt*, Env*);
+    static GCPtr<Object> evalIdentifier(Identifier*, Env*);
+    static GCPtr<Object> evalStringConcatenate(Token&, GCPtr<Object>, GCPtr<Object>);
+    static std::vector<GCPtr<Object>> evalExpressions(std::vector<Expr*>, Env*);
+    static GCPtr<Object> applyFunction(GCPtr<Object>, std::vector<GCPtr<Object>>);
+    static GCPtr<Object> evalAssignExpression(Assign*, Env*);
+    static GCPtr<Object> evalUniaryExpression(Token&, GCPtr<Object>);
+    static GCPtr<Object> evalBinaryExpression(Token&, GCPtr<Object>, GCPtr<Object>);
+    static GCPtr<Object> evalIntergerBinaryExpression(Token&, GCPtr<Object>, GCPtr<Object>);
+    static GCPtr<Object> evalNotOperator(GCPtr<Object>);
+    static GCPtr<Object> evalUniaryMinusOperator(GCPtr<Object>);
+    static GCPtr<Object> nativeBooleanObject(bool value);
+    static bool isTruthy(GCPtr<Object>);
+    static bool isError(GCPtr<Object>);
+    static GCPtr<Object> newError(std::string, std::string);
     static Env* NewEnvironment();
     static Env* NewEnvironment(Env*);
-    static Env* extendFunctionEnv(FunctionObject *, std::vector<Object*>);
-    static Object* unWrapReturnvalue(Object*);
+    static Env* extendFunctionEnv(GCPtr<FunctionObject>, std::vector<GCPtr<Object>>);
+    static GCPtr<Object> unWrapReturnvalue(GCPtr<Object>);
 };
 
 }

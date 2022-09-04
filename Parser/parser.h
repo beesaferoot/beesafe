@@ -1,9 +1,9 @@
 #ifndef PARSER_H
 #define PARSER_H
-#include"lexer.h"
-#include"token.h"
-#include"ast.h"
-#include"Number.h"
+#include"Lexer/lexer.h"
+#include"ast/ast.h"
+#include"Lexer/Number.h"
+#include"Lexer/token.h"
 #include<iostream>
 #include<cassert>
 #include<stack>

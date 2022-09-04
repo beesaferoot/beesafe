@@ -1,6 +1,6 @@
 #ifndef AST_H
 #define AST_H
-#include"Lexer/Lexer/token.h"
+#include"Lexer/token.h"
 #include<vector>
 #include<ostream>
 #include<sstream>

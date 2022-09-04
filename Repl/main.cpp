@@ -1,9 +1,8 @@
 #include<iostream>
-#include<sstream>
 #include<random>
-#include<exception>
-#include"parser.h"
-#include"evaluator.h"
+#include "Parser/parser.h"
+#include "Evaluator/evaluator.h"
+#include "Lexer/lexer.h"
 
 #define PROMPT ">>"
 using namespace std;
@@ -77,7 +76,7 @@ int main()
             cout << "\t" << randomMessageGen() << "..." << endl;
             break;
         }
-        auto l = Lexer::New(join_lines(buffer_list));
+        auto l = lexer::Lexer::New(join_lines(buffer_list));
         auto p = parser::Parser::New(l);
         auto program = p->parseProgram();
         cout << "Parse -> "<< program << endl;

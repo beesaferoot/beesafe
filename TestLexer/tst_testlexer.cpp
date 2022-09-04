@@ -1,5 +1,5 @@
 #include <QtTest>
-#include"lexer.h"
+#include"Lexer/lexer.h"
 #include<iostream>
 #include<vector>
 using namespace lexer;
@@ -41,9 +41,9 @@ void TestLexer::testNextToken()
 
     for(auto t : tests){
         auto l = testLexer->NextToken();
-        cout << l->Literal << endl;
-        QCOMPARE(t.Type, l->Type);
-        QCOMPARE(t.Literal, l->Literal);
+        cout << l.Literal << endl;
+        QCOMPARE(t.Type, l.Type);
+        QCOMPARE(t.Literal, l.Literal);
     }
 
 }

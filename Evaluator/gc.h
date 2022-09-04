@@ -130,6 +130,7 @@ public:
 
     typedef Iter<T> GCiterator;
 
+    T* raw() { return this->addr; }
     GCPtr(T *t=nullptr){
 
         if(first) atexit(shutdown);
