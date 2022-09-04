@@ -1,6 +1,6 @@
 #ifndef AST_H
 #define AST_H
-#include"token.h"
+#include"Lexer/Lexer/token.h"
 #include<vector>
 #include<ostream>
 #include<sstream>
@@ -11,6 +11,31 @@ using std::vector;
 
 
 namespace ast {
+
+enum NodeType {
+    UndefinedType,
+    BooleanType,
+    StmtType,
+    BlockStmtType,
+    NullType,
+    NumberType,
+    BinaryOpType,
+    UniaryOpType,
+    ExpressionStmtType,
+    ExpressionType,
+    ReturnStmtType,
+    StringLiteralType,
+    IdentifierType,
+    IfStmtType,
+    WhileStmtType,
+    FunctionStmtType,
+    FunctionExprType,
+    InitStmtType,
+    RangeExprType,
+    CallExprType,
+    DeclareStmtType,
+    ForStmtType
+};
 
 enum PRECENDENCE {
     BASE = 0,
@@ -35,17 +60,23 @@ enum ASSOCIATION {
     RIGHT = 1
 };
 
-struct Node{
+struct Node {
     int lineno=0;
+    NodeType type_value = NodeType::UndefinedType;
     Node(){}
     virtual ~Node(){}
-    Node(int line)
-        :lineno{line} {}
+    virtual NodeType type() { return type_value; }
+    Node(int line, NodeType type)
+        :lineno{line}, type_value{type} {}
+    Node(NodeType type)
+        : type_value{type} {}
 };
 
 struct Expr : Node {
+    Expr(int line, NodeType type)
+        :Node(line, type){}
     Expr(int line)
-        :Node(line){}
+        :Node(line, NodeType::ExpressionType){}
     Expr(){}
     virtual ~Expr(){
 
@@ -63,7 +94,7 @@ struct BooleanExpr : Expr {
     Token tok;
     bool value;
     BooleanExpr(Token t, bool v, int line)
-        :Expr(line), tok{t}, value{v}{}
+        :Expr(line, NodeType::BooleanType), tok{t}, value{v}{}
     ~BooleanExpr(){
     }
     virtual std::string toString() const;
@@ -75,8 +106,14 @@ struct BooleanExpr : Expr {
 };
 
 struct Stmt : Node {
+    Stmt(NodeType type)
+        :Node(type){}
+
     Stmt(int line)
-        :Node(line){}
+        :Node(line, NodeType::StmtType){}
+
+    Stmt(int line, NodeType type)
+        :Node(line, type){}
     Stmt(){}
     virtual ~Stmt(){}
     virtual std::string toString() const = 0;
@@ -91,7 +128,7 @@ struct BlockStmt : Stmt {
     Token tok;
     vector<Stmt*> Stmts{};
     BlockStmt(Token &tok)
-        : tok{tok}{
+        :Stmt(NodeType::BlockStmtType), tok{tok}{
     }
     ~BlockStmt()
     {
@@ -114,7 +151,7 @@ struct ReturnStmt : Stmt {
     Token tok;
     Expr* returnValue;
     ReturnStmt(Token t, int line)
-        :Stmt(line), tok{t}, returnValue{nullptr} {}
+        :Stmt(line, NodeType::ReturnStmtType), tok{t}, returnValue{nullptr} {}
     ~ReturnStmt(){
         delete  returnValue;
     }
@@ -128,7 +165,7 @@ struct ReturnStmt : Stmt {
 };
 
 struct Program : Node {
-    vector<Stmt*> Stmts;
+    vector<struct Stmt*> Stmts;
     ~Program()
     {
         for(auto stmt: Stmts){
@@ -148,7 +185,7 @@ struct Program : Node {
 struct NullExpr : Expr {
     Token tok;
     NullExpr(Token t, int line)
-        :Expr(line), tok{t}{}
+        :Expr(line, NodeType::NullType), tok{t}{}
     ~NullExpr(){
     }
     virtual std::string toString() const;
@@ -164,7 +201,7 @@ struct Identifier : Expr{
     Token tok;
     Expr* value;
     Identifier(Token t, int line)
-        :Expr(line), tok{t}, value{nullptr} {}
+        :Expr(line, NodeType::IdentifierType), tok{t}, value{nullptr} {}
     ~Identifier(){
         delete value;
         value = nullptr;
@@ -181,7 +218,7 @@ struct StringLiteral : Expr{
     Token tok;
     std::string Literal;
     StringLiteral(Token t, int line)
-        :Expr(line), tok{t}, Literal{t.Literal}{}
+        :Expr(line, NodeType::StringLiteralType), tok{t}, Literal{t.Literal}{}
     ~StringLiteral(){
     }
 
@@ -197,7 +234,7 @@ struct Number :  Expr {
     Token tok;
     int value;
     Number(Token t, int v, int line)
-        :Expr(line), tok{t}, value{v}{}
+        :Expr(line, NodeType::NumberType), tok{t}, value{v}{}
     ~Number(){
     }
     virtual std::string toString() const;
@@ -212,8 +249,8 @@ struct Op: Expr {
     Token tok;
     int precedence;
     int associative;
-    Op(Token t, int p, int a, int line)
-        :Expr(line), tok{t}, precedence{p}, associative{a}{}
+    Op(Token t, int p, int a, int line, NodeType type)
+        :Expr(line, type), tok{t}, precedence{p}, associative{a}{}
     virtual ~Op(){
     }
     virtual std::string toString() const = 0;
@@ -224,7 +261,7 @@ struct BinaryOp : Op {
     Expr* RightOp;
     Expr* LeftOp;
     BinaryOp(Token t, int p, int a, int line)
-        :Op(t, p, a, line), RightOp{nullptr}, LeftOp{nullptr} {}
+        :Op(t, p, a, line, NodeType::BinaryOpType), RightOp{nullptr}, LeftOp{nullptr} {}
     virtual ~BinaryOp(){
          delete  RightOp;
         RightOp = nullptr;
@@ -372,7 +409,7 @@ struct NotEquals : BinaryOp{
 struct UniaryOp : Op {
     Expr* RightOp;
     UniaryOp(Token &t, int p, int a , int line)
-        :Op(t, p, a, line), RightOp{nullptr} {}
+        :Op(t, p, a, line, NodeType::UniaryOpType), RightOp{nullptr} {}
     virtual ~UniaryOp(){
         delete  RightOp;
         RightOp = nullptr;
@@ -406,10 +443,10 @@ struct Not : UniaryOp{
 
 struct InitStmt: Stmt {
     Token &tok;
-    Identifier* variable;
+    struct Identifier* variable;
     Expr* value;
     InitStmt(Token &token, int line)
-        :Stmt(line), tok{token}, variable{nullptr}{}
+        :Stmt(line, NodeType::InitStmtType), tok{token}, variable{nullptr}{}
     ~InitStmt(){
         delete  variable;
         variable = nullptr;
@@ -426,9 +463,9 @@ struct InitStmt: Stmt {
 
 struct DeclareStmt: Stmt {
     Token tok;
-    vector<Identifier*> varList;
+    vector<struct Identifier*> varList;
     DeclareStmt(Token token, int line)
-        :Stmt(line), tok{token}{}
+        :Stmt(line, NodeType::DeclareStmtType), tok{token}{}
     ~DeclareStmt(){
         for(auto ident : varList){
             delete ident;
@@ -446,9 +483,9 @@ struct DeclareStmt: Stmt {
 struct WhileStmt: Stmt {
     Token tok;
     BooleanExpr* condition;
-    BlockStmt* body;
+    struct BlockStmt* body;
     WhileStmt(Token token, int line)
-        :Stmt(line), tok{token}, condition{nullptr}, body{nullptr} {}
+        :Stmt(line, NodeType::WhileStmtType), tok{token}, condition{nullptr}, body{nullptr} {}
     ~WhileStmt(){
        delete condition;
        condition = nullptr;
@@ -466,10 +503,10 @@ struct WhileStmt: Stmt {
 struct IfStmt: Stmt {
     Token tok;
     Expr* condition;
-    BlockStmt* body;
-    BlockStmt* alternative;
+    struct BlockStmt* body;
+    struct BlockStmt* alternative;
     IfStmt(Token token, int line)
-        :Stmt(line), tok{token}, condition{nullptr}, body{nullptr}, alternative{nullptr} {}
+        :Stmt(line, NodeType::IfStmtType), tok{token}, condition{nullptr}, body{nullptr}, alternative{nullptr} {}
     ~IfStmt(){
         delete condition;
         delete body;
@@ -487,7 +524,9 @@ struct ExpressionStmt: Stmt {
     Token tok;
     Expr* Expression;
     ExpressionStmt(Token token, int line)
-        :Stmt(line), tok{token}, Expression{nullptr} {}
+        :Stmt(line, NodeType::ExpressionStmtType), tok{token}, Expression{nullptr} {}
+    ExpressionStmt(Token token, int line, NodeType type)
+            :Stmt(line, type), tok{token}, Expression{nullptr} {}
     ~ExpressionStmt(){
         delete Expression;
         Expression = nullptr;
@@ -502,17 +541,17 @@ struct ExpressionStmt: Stmt {
 
 struct FunctionStmt : ExpressionStmt {
     FunctionStmt(Token token, int line)
-        :ExpressionStmt(token, line){}
+        :ExpressionStmt(token, line, NodeType::FunctionStmtType){}
     ~FunctionStmt(){}
 };
 
 struct FunctionLiteral: Expr {
     Token tok;
-    Identifier* header;
+    struct Identifier* header;
     vector<Identifier*> parameters;
-    BlockStmt* body;
+    struct BlockStmt* body;
     FunctionLiteral(Token token, int line)
-        :Expr(line), tok{token}, header{nullptr}, body{nullptr} {}
+        :Expr(line, NodeType::FunctionExprType), tok{token}, header{nullptr}, body{nullptr} {}
     ~FunctionLiteral(){
         delete  header;
         header = nullptr;
@@ -537,7 +576,7 @@ struct CallExpression: Expr {
     Expr* function;
     vector<Expr*> arguments;
     CallExpression(Token token, int line)
-        :Expr(line), tok{token}, function{nullptr} {}
+        :Expr(line, NodeType::CallExprType), tok{token}, function{nullptr} {}
     ~CallExpression(){
         delete function;
         function = nullptr;
@@ -561,7 +600,7 @@ struct RangeExpr: Expr {
     int init_value;
     int end_value;
     RangeExpr(Token t, int line)
-        :Expr(line), tok{t} {}
+        :Expr(line, NodeType::RangeExprType), tok{t} {}
     ~RangeExpr(){
     }
     virtual std::string toString() const;
@@ -580,7 +619,7 @@ struct ForStmt: Stmt {
     BlockStmt* body;
 
     ForStmt(Token token, int line)
-        :Stmt(line), tok{token}{}
+        :Stmt(line, NodeType::ForStmtType), tok{token}{}
     ~ForStmt(){
         delete  target;
         target = nullptr;

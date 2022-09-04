@@ -3,8 +3,7 @@
 #include<string>
 #include<iostream>
 #include<vector>
-#include"ast.h"
-//#include"env.h"
+#include"ast/ast/ast.h"
 
 using namespace ast;
 namespace symbols{
@@ -163,10 +162,10 @@ private:
 
 // Function Representation
 struct FunctionObject: Object {
-    std::vector<Identifier*> parameters;
-    BlockStmt* body;
+    std::vector<struct Identifier*> parameters;
+    struct BlockStmt* body;
     Env* env;
-    FunctionObject( std::vector<Identifier*> params, BlockStmt* b, Env* e)
+    FunctionObject( std::vector<struct Identifier*> params, struct BlockStmt* b, Env* e)
         :FunctionObject(){
         parameters = params;
         body = b;
