@@ -4,8 +4,20 @@ using namespace symbols;
 
 Env::~Env()
 {
-    prev = nullptr;
 }
+
+void Env::setDepth(int depth_prev)
+{
+    depth = depth_prev + depth;
+}
+
+bool Env::is_recurseLimitExceeded() const
+{
+    if(recurseLimit <= depth)
+        return true;
+    return false;
+}
+
 void Env::put(std::string s, Object* obj)
 {
     if(table.find(s) != table.end()){
@@ -13,8 +25,6 @@ void Env::put(std::string s, Object* obj)
     }else{
         table.insert({s, obj});
     }
-
-
 }
 
 Object* Env::get(std::string s)
@@ -74,7 +84,29 @@ std::string FunctionObject::toString() const
     return out.str();
 }
 
+
+Object* StringObject::nextItem()
+{
+    if(this->iter_index >= (int)this->value.size()){
+        return new NullObject();
+    }
+    auto curStr = new StringObject(std::string(1, this->value.at(this->iter_index)));
+    this->iter_index++;
+    return curStr;
+}
+
 std::string StringObject::toString() const
 {
     return "'" + value + "'";
+}
+
+
+Object* RangeObject::nextItem()
+{
+    if(iter_value <= end_value){
+        return new IntObject(iter_value++);
+    }else{
+        iter_value = init_value;
+        return nullptr;
+    }
 }

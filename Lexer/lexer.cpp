@@ -11,9 +11,9 @@ Lexer* Lexer::New(std::string input)
     return l;
 }
 
-Token* Lexer::NextToken()
+Token Lexer::NextToken()
 {
-    Token* tok;
+    Token tok;
     skipWhiteSpace();
 
     switch (curChar) {
@@ -24,26 +24,26 @@ Token* Lexer::NextToken()
             std::string literal = "";
             literal += ch;
             literal += curChar;
-            tok = new Token(TokenType::RANGE, literal);
+            tok = Token(TokenType::RANGE, literal);
         }else{
-            tok = new Token(TokenType::INVALID, std::string(1, curChar));
+            tok = Token(TokenType::INVALID, std::string(1, curChar));
         }
         break;
     case '\n':
-        tok = new Symbol(TokenType::NEWLINE, std::string(1, curChar));
+        tok = Symbol(TokenType::NEWLINE, std::string(1, curChar));
         line++;
         break;
     case '+':
-        tok = new Operator(TokenType::PLUS, std::string(1, curChar));
+        tok = Operator(TokenType::PLUS, std::string(1, curChar));
         break;
     case '-':
-        tok = new Operator(TokenType::MINUS, std::string(1, curChar));
+        tok = Operator(TokenType::MINUS, std::string(1, curChar));
         break;
     case '*':
-        tok = new Operator(TokenType::ASTERISK, std::string(1, curChar));
+        tok = Operator(TokenType::ASTERISK, std::string(1, curChar));
         break;
     case '/':
-        tok = new Operator(TokenType::DIV, std::string(1, curChar));
+        tok = Operator(TokenType::DIV, std::string(1, curChar));
         break;
     case '<':
         if (peekChar() == '='){
@@ -52,9 +52,9 @@ Token* Lexer::NextToken()
             std::string literal = "";
             literal += ch;
             literal += curChar;
-            tok = new Operator(TokenType::LT_EQ, literal);
+            tok = Operator(TokenType::LT_EQ, literal);
         }else{
-            tok = new Operator(TokenType::LT, std::string(1, curChar));
+            tok = Operator(TokenType::LT, std::string(1, curChar));
         }
         break;
     case '>':
@@ -64,9 +64,9 @@ Token* Lexer::NextToken()
             std::string literal = "";
             literal += ch;
             literal += curChar;
-            tok = new Operator(TokenType::GT_EQ, literal);
+            tok = Operator(TokenType::GT_EQ, literal);
         }else{
-            tok = new Operator(TokenType::GT, std::string(1, curChar));
+            tok = Operator(TokenType::GT, std::string(1, curChar));
         }
 
         break;
@@ -77,9 +77,9 @@ Token* Lexer::NextToken()
             std::string literal = "";
             literal += ch;
             literal += curChar;
-            tok = new Operator(TokenType::EQ, literal);
+            tok = Operator(TokenType::EQ, literal);
         }else{
-            tok = new Operator(TokenType::ASSIGN, std::string(1, curChar));
+            tok = Operator(TokenType::ASSIGN, std::string(1, curChar));
         }
         break;
     case '!':
@@ -89,48 +89,48 @@ Token* Lexer::NextToken()
             std::string literal = "";
             literal += ch;
             literal += curChar;
-            tok = new Operator(TokenType::NOT_EQ, literal);
+            tok = Operator(TokenType::NOT_EQ, literal);
         }else{
-            tok = new Operator(TokenType::BANG, std::string(1, curChar));
+            tok = Operator(TokenType::BANG, std::string(1, curChar));
         }
         break;
     case ',':
-        tok = new Symbol(TokenType::COMMA, std::string(1, curChar));
+        tok = Symbol(TokenType::COMMA, std::string(1, curChar));
         break;
     case '{':
-        tok = new Symbol(TokenType::LBRACE, std::string(1, curChar));
+        tok = Symbol(TokenType::LBRACE, std::string(1, curChar));
         break;
     case '}':
-        tok = new Symbol(TokenType::RBRACE, std::string(1, curChar));
+        tok = Symbol(TokenType::RBRACE, std::string(1, curChar));
         break;
     case '(':
-        tok = new Symbol(TokenType::LPAREN, std::string(1, curChar));
+        tok = Symbol(TokenType::LPAREN, std::string(1, curChar));
         break;
     case ')':
-        tok = new Symbol(TokenType::RPAREN, std::string(1, curChar));
+        tok = Symbol(TokenType::RPAREN, std::string(1, curChar));
         break;
     case '\0':
-        tok = new Token(TokenType::EOB, std::string(1, curChar));
+        tok = Token(TokenType::EOB, std::string(1, curChar));
         break;
     default:
         if (isLetter(curChar)){
             std::string literal = readIdent();
             auto wsrch = Lexer::keywords.find(literal);
             if(wsrch != Lexer::keywords.end())
-                tok  = &wsrch->second;
+                tok  = wsrch->second;
             else
-                tok = new Word(TokenType::ID, literal);
+                tok = Word(TokenType::ID, literal);
             return tok;
         }else if (isDigit(curChar)){
             int val = std::stoi(readInt());
-            tok = new Num(val);
+            tok = Num(val);
             return tok;
         }else if(curChar == '\'' || curChar == '"'){
             std::string literal = readStringLiteral(curChar);
-            tok = new Word(TokenType::LITERAL, literal);
+            tok = Word(TokenType::LITERAL, literal);
         }
         else{
-           tok = new Token(TokenType::INVALID, std::string(1, curChar));
+           tok = Token(TokenType::INVALID, std::string(1, curChar));
         }
 
     }

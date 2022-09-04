@@ -1,9 +1,8 @@
 #include<iostream>
-#include<sstream>
 #include<random>
-#include<exception>
-#include"parser.h"
-#include"evaluator.h"
+#include "Parser/parser.h"
+#include "Evaluator/evaluator.h"
+#include "Lexer/lexer.h"
 
 #define PROMPT ">>"
 using namespace std;
@@ -36,38 +35,57 @@ string randomMessageGen()
     }
 }
 
+void spitParseErrors(std::vector<string> errors){
+    cout << "syntax errors:\n";
+    for(auto& error : errors){
+        cout << error << endl;
+    }
+}
+
+void read_lines( istream& in, list<string>& list ) {
+    while( true ) {
+        std::string line = "";
+        std::getline( in, line );
+        if( line != "" ) {
+            list.push_back( line );
+        }else {
+            break;
+        }
+    }
+}
+
+string join_lines(list<string> & lines){
+    string str = "";
+    for(string& line: lines){
+        str += line + "\n";
+    }
+//    cout << str << endl;
+    return str;
+}
+
 int main()
 {
-    const int SIZE = 200;
-    char lineBuffer[SIZE];
     cout << "Welcome to BEESAFE :) REPL v1.0 " << endl;
     cout << "Type CTRL-D to Exit" << endl;
     auto env = Evaluator::NewEnvironment();
     while (true){
         cout << PROMPT;
-        cin.getline(lineBuffer, SIZE);
+        list<string> buffer_list;
+        read_lines(cin, buffer_list );
         if(cin.eof()){
             cout << "\t" << randomMessageGen() << "..." << endl;
-            return 0;
+            break;
         }
-        // hack to add newline using semicolons ; :)
-        for(int i{0}; i < cin.gcount(); ++i){
-            if(lineBuffer[i] == ';')
-                lineBuffer[i] = '\n';
-
-        }
-        auto l = Lexer::New(lineBuffer);
+        auto l = lexer::Lexer::New(join_lines(buffer_list));
         auto p = parser::Parser::New(l);
-        try {
-            auto program = p->parseProgram();
-            auto object = Evaluator::Eval(program, env);
-//            cout << "Parse -> "<< program << endl;
-//            cout << "Eval -> " << object << endl;
-            cout << object << endl;
-        } catch (parser::SyntaxError &err) {
-            cerr << "SyntaxError: " << err.what()
-             << endl;
+        auto program = p->parseProgram();
+        cout << "Parse -> "<< program << endl;
+        if (p->hasErrors() != true){
+            auto evalStmts = Evaluator::evalProgram(program, env);
+            cout << "evaluated statement size: " << evalStmts.size() << endl;
+            cout << "Eval -> " << evalStmts.front() << endl;
+        }else{
+            spitParseErrors(p->Errors());
         }
     }
-    return 0;
 }

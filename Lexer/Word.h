@@ -8,7 +8,9 @@ class Word : public Token{
 public:
     Word(TokenType type, std::string literal)
         :Token(type, literal), lexeme(literal){}
-    ~Word(){}
+    ~Word(){
+
+    }
     std::ostream& operator<<(std::ostream &out)
     {
         out << this->lexeme;

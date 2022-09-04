@@ -1,6 +1,6 @@
 #include <QtTest>
-#include"parser.h"
-#include"lexer.h"
+#include"Parser/parser.h"
+#include"Lexer/lexer.h"
 #include<string>
 
 using std::string;
@@ -30,6 +30,7 @@ private slots:
     void test_functionstmt();
     void test_functionliteral();
     void test_functioncall();
+    void test_exception();
 };
 
 TestParser::TestParser(){}
@@ -233,6 +234,30 @@ void TestParser::test_stmts()
     Parser* parser = Parser::New(l);
     auto program = parser->parseProgram();
     QCOMPARE((int)program->Stmts.size(), 4);
+    cout << program << endl;
+}
+
+void TestParser::test_exception()
+{
+   cout << R"(
+                ----- test_exception ------
+            )" << endl;
+   string buff = R"((-
+                    (]
+                    -=
+                    =-
+                    ++
+                    --
+                    /)
+                    -+
+                    )-
+                    --
+                    !)
+                    ()";
+   Lexer* l = Lexer::New(buff);
+   Parser* parser = Parser::New(l);
+   auto program = parser->parseProgram();
+   QCOMPARE((int)program->Stmts.size(), 0);
     cout << program << endl;
 }
 
