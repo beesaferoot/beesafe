@@ -1,15 +1,15 @@
 #ifndef PARSER_H
 #define PARSER_H
 #include"Lexer/lexer.h"
-#include"ast/ast.h"
-#include"Lexer/Number.h"
-#include"Lexer/token.h"
-#include<iostream>
-#include<cassert>
-#include<stack>
-#include<unordered_map>
+#include "Ast/ast.h"
+#include "Lexer/Number.h"
+#include "Lexer/token.h"
+#include <iostream>
+#include <cassert>
+#include <stack>
+#include <unordered_map>
 #include <sstream>
-#include<vector>
+#include <vector>
 
 using namespace lexer;
 using namespace ast;

@@ -1,47 +1,15 @@
-#include <QtTest>
-#include"Parser/parser.h"
-#include"Lexer/lexer.h"
-#include<string>
+#include <gtest/gtest.h>
+#include "Parser/parser.h"
+#include "Lexer/lexer.h"
+#include <string>
 
 using std::string;
 using std::cerr;
 using std::cout;
 using namespace parser;
-// add necessary includes here
 
-class TestParser : public QObject
-{
-    Q_OBJECT
 
-public:
-    TestParser();
-    ~TestParser();
-
-private slots:
-    void initTestCase();
-    void cleanupTestCase();
-    void test_forstmt();
-    void test_declarestmt();
-    void test_initstmt();
-    void test_expression();
-    void test_stmts();
-    void test_ifstmt();
-    void test_returnstmt();
-    void test_functionstmt();
-    void test_functionliteral();
-    void test_functioncall();
-    void test_exception();
-};
-
-TestParser::TestParser(){}
-
-TestParser::~TestParser(){}
-
-void TestParser::initTestCase(){}
-void TestParser::cleanupTestCase(){}
-
-void TestParser::test_functioncall()
-{
+TEST(TestParser, TestFunctionCall){
     cout << R"(
             ---- test_functioncall ----
             )" << endl;
@@ -57,11 +25,12 @@ void TestParser::test_functioncall()
     Lexer* l = Lexer::New(buff);
     Parser* parser = Parser::New(l);
     auto program = parser->parseProgram();
+    EXPECT_TRUE(!program->Stmts.empty());
+    EXPECT_EQ((int)program->Stmts.size(), 6);
     cout << program << endl;
-
 }
-void TestParser::test_functionstmt()
-{
+
+TEST(TestParser, TestFunctionStmt){
     cout << R"(
             ---- test_functionstmt ----
             )" << endl;
@@ -77,12 +46,12 @@ void TestParser::test_functionstmt()
     Lexer* l = Lexer::New(buff);
     Parser* parser = Parser::New(l);
     auto program = parser->parseProgram();
+    EXPECT_TRUE(!program->Stmts.empty());
+    EXPECT_EQ((int)program->Stmts.size(), 2);
     cout << program << endl;
-
 }
 
-void TestParser::test_functionliteral()
-{
+TEST(TestParser, TestFunctionLiteral){
     cout << R"(
             ---- test_functionliteral ----
 
@@ -92,11 +61,12 @@ void TestParser::test_functionliteral()
     Lexer* l = Lexer::New(buff);
     Parser* parser = Parser::New(l);
     auto program = parser->parseProgram();
+    EXPECT_TRUE(!program->Stmts.empty());
+    EXPECT_EQ((int)program->Stmts.size(), 1);
     cout << program << endl;
 }
 
-void TestParser::test_returnstmt()
-{
+TEST(TestParser, TestReturnStmt){
 
     cout << R"(
             ---- test_returnstmt ----
@@ -114,12 +84,13 @@ void TestParser::test_returnstmt()
     Lexer* l = Lexer::New(buff);
     Parser* parser = Parser::New(l);
     auto program = parser->parseProgram();
-    QCOMPARE((int)program->Stmts.size(), 9);
+    EXPECT_TRUE(!program->Stmts.empty());
+    EXPECT_EQ((int)program->Stmts.size(), 9);
     cout << program << endl;
 }
 
-void TestParser::test_ifstmt()
-{
+
+TEST(TestParser, TestIfStmt){
     cout << R"(
             ---- test_ifstmt ----
             )" << endl;
@@ -144,12 +115,12 @@ void TestParser::test_ifstmt()
     Lexer* l = Lexer::New(buff);
     Parser* parser = Parser::New(l);
     auto program = parser->parseProgram();
-    QCOMPARE((int)program->Stmts.size(), 5);
+    EXPECT_TRUE(!program->Stmts.empty());
+    EXPECT_EQ((int)program->Stmts.size(), 5);
     cout << program << endl;
 }
 
-void TestParser::test_forstmt()
-{
+TEST(TestParser, TestForStmt){
     cout << R"(
             ---- test_forstmt ----
             )" << endl;
@@ -158,13 +129,13 @@ void TestParser::test_forstmt()
     Lexer* l = Lexer::New(buff);
     Parser* parser = Parser::New(l);
     auto program = parser->parseProgram();
-    QCOMPARE((int)program->Stmts.size(), 1);
+    EXPECT_TRUE(!program->Stmts.empty());
+    EXPECT_EQ((int)program->Stmts.size(), 1);
     cout << program;
 }
 
-void TestParser::test_declarestmt()
-{
 
+TEST(TestParser, TestDeclareStmt){
     cout << R"(
             ---- test_declarestmt ----
             )" << endl;
@@ -176,12 +147,12 @@ void TestParser::test_declarestmt()
     Lexer* l = Lexer::New(buff);
     Parser* parser = Parser::New(l);
     auto program = parser->parseProgram();
-    QCOMPARE((int)program->Stmts.size(), 3);
+    EXPECT_TRUE(!program->Stmts.empty());
+    EXPECT_EQ((int)program->Stmts.size(), 3);
     cout << program << endl;
 }
 
-void TestParser::test_expression()
-{
+TEST(TestParser, TestExpression){
     cout << R"(
             ---- test_expression ----
             )" << endl;
@@ -195,12 +166,12 @@ void TestParser::test_expression()
     Lexer* l = Lexer::New(buff);
     Parser* parser = Parser::New(l);
     auto program = parser->parseProgram();
-    QCOMPARE((int)program->Stmts.size(), 6);
+    EXPECT_TRUE(!program->Stmts.empty());
+    EXPECT_EQ((int)program->Stmts.size(), 6);
     cout << program << endl;
 }
 
-void TestParser::test_initstmt()
-{
+TEST(TestParser, TestInitStmt){
     cout << R"(
             ---- test_initstmt ----
             )" << endl;
@@ -212,12 +183,12 @@ void TestParser::test_initstmt()
     Lexer* l = Lexer::New(buff);
     Parser* parser = Parser::New(l);
     auto program = parser->parseProgram();
-    QCOMPARE((int)program->Stmts.size(), 3);
+    EXPECT_TRUE(!program->Stmts.empty());
+    EXPECT_EQ((int)program->Stmts.size(), 3);
     cout << program << endl;
 }
 
-void TestParser::test_stmts()
-{
+TEST(TestParser, TestStmts){
     cout << R"(
             ---- test_stmts ----
             )" << endl;
@@ -233,16 +204,16 @@ void TestParser::test_stmts()
     Lexer* l = Lexer::New(buff);
     Parser* parser = Parser::New(l);
     auto program = parser->parseProgram();
-    QCOMPARE((int)program->Stmts.size(), 4);
+    EXPECT_TRUE(!program->Stmts.empty());
+    EXPECT_EQ((int)program->Stmts.size(), 4);
     cout << program << endl;
 }
 
-void TestParser::test_exception()
-{
-   cout << R"(
+TEST(TestParser, TestException){
+    cout << R"(
                 ----- test_exception ------
             )" << endl;
-   string buff = R"((-
+    string buff = R"((-
                     (]
                     -=
                     =-
@@ -254,13 +225,9 @@ void TestParser::test_exception()
                     --
                     !)
                     ()";
-   Lexer* l = Lexer::New(buff);
-   Parser* parser = Parser::New(l);
-   auto program = parser->parseProgram();
-   QCOMPARE((int)program->Stmts.size(), 0);
+    Lexer* l = Lexer::New(buff);
+    Parser* parser = Parser::New(l);
+    auto program = parser->parseProgram();
+    EXPECT_TRUE(program->Stmts.empty());
     cout << program << endl;
 }
-
-QTEST_APPLESS_MAIN(TestParser)
-
-#include "tst_testparser.moc"
