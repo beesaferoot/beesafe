@@ -1,9 +1,9 @@
 #ifndef EVALUATOR_H
 #define EVALUATOR_H
-#include"Parser/parser.h"
-#include"Symbols/object.h"
-#include"ast/ast.h"
-#include<vector>
+#include "Parser/parser.h"
+#include "Symbols/object.h"
+#include "Ast/ast.h"
+#include <vector>
 #include "gc.h"
 
 using namespace symbols;

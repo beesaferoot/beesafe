@@ -3,7 +3,7 @@
 #include<string>
 #include<iostream>
 #include<vector>
-#include"ast/ast.h"
+#include"Ast/ast.h"
 
 using namespace ast;
 namespace symbols{
