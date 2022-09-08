@@ -5,7 +5,6 @@ project(BS LANGUAGES CXX)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-#set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static-libstdc++")
 
 add_executable(BS
 
@@ -32,4 +31,26 @@ add_executable(BS
         Symbols/object.h
         Symbols/symbols.h)
 
+add_executable(tests_out
+        Tests/test_evaluator.cpp
+        Tests/test_lexer.cpp
+        Tests/test_parser.cpp
+)
+target_link_libraries(
+        tests_out
+        GTest::gtest_main
+)
 
+include(FetchContent)
+
+# setup gtest
+FetchContent_Declare(
+        googletest
+        GIT_REPOSITORY https://github.com/google/googletest.git
+        GIT_TAG release-1.12.1
+)
+
+FetchContent_MakeAvailable(googletest)
+enable_testing()
+include(GoogleTest)
+gtest_discover_tests(BS)
