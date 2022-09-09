@@ -1,4 +1,4 @@
-## BEESAFE INTERPRETER 
+# Beesafe  
 ---
-* An Exprimental Implementation of a basic programming language*
+* An experimental implementation of a dynamic  programming language
 
