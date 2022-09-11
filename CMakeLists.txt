@@ -31,11 +31,33 @@ add_executable(BS
         Symbols/object.h
         Symbols/symbols.h)
 
+# FIXME: find a way not to duplicate the source/headers in both BS and tests_out
 add_executable(tests_out
         Tests/test_evaluator.cpp
         Tests/test_lexer.cpp
         Tests/test_parser.cpp
+
+        Ast/ast.cpp
+        Evaluator/evaluator.cpp
+        Lexer/lexer.cpp
+        Parser/parser.cpp
+        Symbols/symbols.cpp
+        Symbols/object.cpp
+
+        Ast/ast.h
+        Evaluator/evaluator.h
+        Evaluator/gc.h
+        Lexer/lexer.h
+        Lexer/Number.h
+        Lexer/Symbol.h
+        Lexer/Word.h
+        Lexer/token.h
+        Lexer/Operator.h
+        Parser/parser.h
+        Symbols/object.h
+        Symbols/symbols.h
 )
+
 target_link_libraries(
         tests_out
         GTest::gtest_main
@@ -53,4 +75,4 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(googletest)
 enable_testing()
 include(GoogleTest)
-gtest_discover_tests(BS)
+gtest_discover_tests(tests_out)
