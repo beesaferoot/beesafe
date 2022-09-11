@@ -24,12 +24,12 @@ public:
     static GCPtr<Object> evalFunctionStmt(FunctionStmt*, Env*);
     static GCPtr<Object> evalIdentifier(Identifier*, Env*);
     static GCPtr<Object> evalStringConcatenate(Token&, GCPtr<Object>, GCPtr<Object>);
-    static std::vector<GCPtr<Object>> evalExpressions(std::vector<Expr*>, Env*);
-    static GCPtr<Object> applyFunction(GCPtr<Object>, std::vector<GCPtr<Object>>);
+    static std::vector<GCPtr<Object>> evalExpressions(std::vector<Expr*>&, Env*);
+    static GCPtr<Object> applyFunction(GCPtr<Object>&, std::vector<GCPtr<Object>>&);
     static GCPtr<Object> evalAssignExpression(Assign*, Env*);
     static GCPtr<Object> evalUniaryExpression(Token&, GCPtr<Object>);
-    static GCPtr<Object> evalBinaryExpression(Token&, GCPtr<Object>, GCPtr<Object>);
-    static GCPtr<Object> evalIntergerBinaryExpression(Token&, GCPtr<Object>, GCPtr<Object>);
+    static GCPtr<Object> evalBinaryExpression(Token&, GCPtr<Object>&, GCPtr<Object>&);
+    static GCPtr<Object> evalIntergerBinaryExpression(Token&, GCPtr<Object>&, GCPtr<Object>&);
     static GCPtr<Object> evalNotOperator(GCPtr<Object>);
     static GCPtr<Object> evalUniaryMinusOperator(GCPtr<Object>);
     static GCPtr<Object> nativeBooleanObject(bool value);
@@ -38,8 +38,8 @@ public:
     static GCPtr<Object> newError(std::string, std::string);
     static Env* NewEnvironment();
     static Env* NewEnvironment(Env*);
-    static Env* extendFunctionEnv(GCPtr<FunctionObject>, std::vector<GCPtr<Object>>);
-    static GCPtr<Object> unWrapReturnvalue(GCPtr<Object>);
+    static Env* extendFunctionEnv(GCPtr<FunctionObject>&, std::vector<GCPtr<Object>>&);
+    static Object* unWrapReturnvalue(GCPtr<Object>&);
 };
 
 }

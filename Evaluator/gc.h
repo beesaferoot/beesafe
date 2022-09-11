@@ -1,7 +1,7 @@
 #ifndef GC_H
 #define GC_H
 #ifndef DISPLAY
-#define DISPLAY
+//#define DISPLAY
 // A single-threaded garbage collector[ see Art of C++(chapter 2) ]
 #include <iostream>
 #include <list>
@@ -148,7 +148,7 @@ public:
         }
         addr = t;
         #ifdef DISPLAY
-           cout << "Constructing GCPtr. " << endl;
+           cout << "Constructing GCPtr. " << addr << endl;
         #endif
     }
 
@@ -159,7 +159,22 @@ public:
 
         addr = ob.addr;
         #ifdef DISPLAY
-            cout << "Constructing copy." << endl;
+            cout << "Constructing GCPtr copy." << addr << endl;
+        #endif
+    }
+
+    T* unref() {
+        gclist.remove(addr);
+        return  addr;
+    }
+
+    GCPtr(const GCPtr &&ob) noexcept {
+        typename list<GCInfo<T>>::iterator p;
+        p = findPtrInfo(ob.addr);
+        p->refcount--; // decrement ref count of previous owner
+        addr = move(ob.addr);
+        #ifdef DISPLAY
+            cout << "Moving GCPtr." << addr << endl;
         #endif
     }
 

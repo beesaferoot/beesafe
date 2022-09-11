@@ -35,7 +35,7 @@ GCPtr<Object> Evaluator::Eval(Node* node, Env* env)
        if(isError(value)){
            return value;
        }
-       return new ReturnObject(value);
+       return new ReturnObject(value.unref());
    }
    else if(node->type() == NodeType::InitStmtType){
        auto stmt = dynamic_cast<InitStmt*>(node);
@@ -102,11 +102,11 @@ GCPtr<Object> Evaluator::Eval(Node* node, Env* env)
        auto Op = dynamic_cast<BinaryOp*>(node);
        auto LeftValue = Eval(Op->LeftOp, env);
        if(isError(LeftValue)){
-           return LeftValue;
+           return LeftValue.unref();
        }
        auto RightValue = Eval(Op->RightOp, env);
        if(isError(RightValue)){
-           return RightValue;
+           return RightValue.unref();
        }
        return evalBinaryExpression(Op->tok, LeftValue, RightValue);
    }
@@ -116,8 +116,8 @@ GCPtr<Object> Evaluator::Eval(Node* node, Env* env)
 list<GCPtr<Object>> Evaluator::evalProgram(Program *program, Env* env){
     list<GCPtr<Object>> evaluatedStmts;
     for(auto stmt : program->Stmts){
-        Object* result = Eval(stmt, env);
-        if(auto res = dynamic_cast<ReturnObject*>(result)){
+        auto result = Eval(stmt, env);
+        if(auto res = dynamic_cast<ReturnObject*>(result.raw())){
             result =  res->value;
         }
         evaluatedStmts.push_back(result);
@@ -147,7 +147,7 @@ GCPtr<Object> Evaluator::evalInitStatement(InitStmt *stmt,  Env* env){
     if(isError(value)){
         return value;
     }
-    env->put(stmt->variable->toString(), value);
+    env->put(stmt->variable->toString(), value.unref());
     return NATIVE_NULL;
 }
 
@@ -168,7 +168,7 @@ GCPtr<Object> Evaluator::evalDeclareStatement(DeclareStmt *stmt, Env* env)
             auto message = "name " + ident->toString() + " has already been defined";
             return newError("ValueError: ", message);
         }
-        env->put(ident->toString(), NATIVE_NULL);
+        env->put(ident->toString(), NATIVE_NULL.raw());
 
     }
     return NATIVE_NULL;
@@ -181,11 +181,11 @@ GCPtr<Object> Evaluator::evalFunctionStmt(FunctionStmt *stmt, Env* env){
         return funcObj;
     }
     auto funcName = function->header->tok.Literal;
-    env->put(funcName, funcObj);
+    env->put(funcName, funcObj.unref());
     return NATIVE_NULL;
 }
 
-std::vector<GCPtr<Object>> Evaluator::evalExpressions(std::vector<Expr *> exps, Env* env){
+std::vector<GCPtr<Object>> Evaluator::evalExpressions(std::vector<Expr *>& exps, Env* env){
 
     std::vector<GCPtr<Object>> result;
     for(auto e: exps){
@@ -198,9 +198,9 @@ std::vector<GCPtr<Object>> Evaluator::evalExpressions(std::vector<Expr *> exps, 
     return result;
 }
 
-GCPtr<Object> Evaluator::applyFunction(GCPtr<Object> obj, std::vector<GCPtr<Object>> args){
+GCPtr<Object> Evaluator::applyFunction(GCPtr<Object>& obj, std::vector<GCPtr<Object>>& args){
        auto strValue = obj->toString();
-       auto function = dynamic_cast<FunctionObject*>(obj.raw());
+       GCPtr<FunctionObject> function = dynamic_cast<FunctionObject*>(obj.unref());
        if( function == nullptr){
            auto message = "'"+ strValue + "'" + " object not a callable";
 
@@ -210,19 +210,20 @@ GCPtr<Object> Evaluator::applyFunction(GCPtr<Object> obj, std::vector<GCPtr<Obje
        return unWrapReturnvalue(evaluated);
 }
 
-Env* Evaluator::extendFunctionEnv(GCPtr<FunctionObject> function, std::vector<GCPtr<Object>> args){
+Env* Evaluator::extendFunctionEnv(GCPtr<FunctionObject>& function, std::vector<GCPtr<Object>>& args){
     auto env = NewEnvironment(function->env);
     for(int paramIndex{0}; paramIndex < (int)function->parameters.size(); paramIndex++){
-        env->put(function->parameters[paramIndex]->tok.Literal, args[paramIndex]);
+        env->put(function->parameters[paramIndex]->tok.Literal, args[paramIndex].unref());
     }
     return env;
 }
 
-GCPtr<Object> Evaluator::unWrapReturnvalue(GCPtr<Object> obj){
+Object* Evaluator::unWrapReturnvalue(GCPtr<Object>& obj){
     if(auto returnValue = dynamic_cast<ReturnObject*>(obj.raw())){
+        obj.unref();
         return returnValue->value;
     }
-    return obj;
+    return obj.unref();
 }
 
 GCPtr<Object> Evaluator::evalAssignExpression(Assign *expr, Env *env){
@@ -234,7 +235,7 @@ GCPtr<Object> Evaluator::evalAssignExpression(Assign *expr, Env *env){
     if(isError(rightValue)){
         return rightValue;
     }
-    env->put(expr->LeftOp->toString(), rightValue);
+    env->put(expr->LeftOp->toString(), rightValue.unref());
     return NATIVE_NULL;
 }
 
@@ -283,7 +284,7 @@ GCPtr<Object> Evaluator::evalUniaryMinusOperator(GCPtr<Object> rightExpr){
     return new IntObject(-value);
 }
 
-GCPtr<Object> Evaluator::evalBinaryExpression(Token& op, GCPtr<Object> leftExpr, GCPtr<Object> rightExpr){
+GCPtr<Object> Evaluator::evalBinaryExpression(Token& op, GCPtr<Object>& leftExpr, GCPtr<Object>& rightExpr){
    if(leftExpr->type() == Types::INTTYPE && rightExpr->type() == Types::INTTYPE){
        return evalIntergerBinaryExpression(op, leftExpr, rightExpr);
    }else if( leftExpr->type() == Types::STRINGTYPE && rightExpr->type() == Types::STRINGTYPE){
@@ -322,7 +323,7 @@ GCPtr<Object> Evaluator::evalStringConcatenate(Token& op, GCPtr<Object> left, GC
     }
 }
 
-GCPtr<Object> Evaluator::evalIntergerBinaryExpression(Token& op, GCPtr<Object> leftExpr, GCPtr<Object> rightExpr){
+GCPtr<Object> Evaluator::evalIntergerBinaryExpression(Token& op, GCPtr<Object>& leftExpr, GCPtr<Object>& rightExpr){
     auto leftValue = dynamic_cast<IntObject*>(leftExpr.raw())->value;
     auto rightValue = dynamic_cast<IntObject*>(rightExpr.raw())->value;
     switch (op.Type) {
