@@ -1,5 +1,5 @@
 #include "lexer.h"
-#include<ctype.h>
+#include <cctype>
 using namespace lexer;
 using namespace token;
 
