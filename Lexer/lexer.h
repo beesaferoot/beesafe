@@ -23,7 +23,7 @@ public:
         reserve(Word(TokenType::FOR, "for"));
         reserve(Word(TokenType::RETURN, "return"));
         reserve(Word(TokenType::IN, "in"));
-        reserve(Word(TokenType::_NULL, "null"));
+        reserve(Word(TokenType::NULLTOKEN, "null"));
     };
     static Lexer* New(std::string input);
     token::Token NextToken();

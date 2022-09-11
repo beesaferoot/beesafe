@@ -396,7 +396,7 @@ Expr* Parser::parseExpression()
 
 void Parser::expand()
 {
-    Operators.push({PRECENDENCE::BASE, Operator(TokenType::_NULL, "")});
+    Operators.push({PRECENDENCE::BASE, Operator(TokenType::NULLTOKEN, "")});
     produce();
     auto e = binary(peekToken.Type);
     while(e.Type != TokenType::ERROR)
@@ -408,7 +408,7 @@ void Parser::expand()
         e = binary(peekToken.Type);
     }
     while(Operators.top().second.Type != TokenType::ERROR &&
-          Operators.top().second.Type != TokenType::_NULL)
+          Operators.top().second.Type != TokenType::NULLTOKEN)
     {
         popOperator(true);
     }
@@ -463,7 +463,7 @@ void Parser::produce()
                    errors.push_back(message.str());
                }
                break;
-         case TokenType::_NULL:
+         case TokenType::NULLTOKEN:
             Operands.push(parseNull());
             break;
          default:

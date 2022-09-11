@@ -46,7 +46,7 @@ enum TokenType{
     GT_EQ = 293,
     LITERAL = 294,
     CALL = 295,
-    _NULL,
+    NULLTOKEN,
     ERROR
 };
 
