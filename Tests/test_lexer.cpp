@@ -7,7 +7,7 @@ using namespace token;
 using std::cout;
 using std::endl;
 
-std::vector<Token> keywords(10);
+std::vector<Token> keywords;
 
 TEST(TestLexer, TestNextToken){
     keywords.emplace_back(Word(TokenType::DECLARE, "declare"));
