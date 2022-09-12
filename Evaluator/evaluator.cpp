@@ -8,10 +8,7 @@ GCPtr<Object> NATIVE_FALSE = new BoolObject(false);
 
 GCPtr<Object> NATIVE_NULL = new NullObject();
 
-Evaluator::Evaluator()
-{
-
-}
+Evaluator::Evaluator() = default;
 Evaluator::~Evaluator()
 {
     delete NATIVE_TRUE;
@@ -24,6 +21,10 @@ GCPtr<Object> Evaluator::Eval(Node* node, Env* env)
     if (node->type() == NodeType::BlockStmtType){
         auto block = dynamic_cast<BlockStmt*>(node);
         return evalBlockStatement(block, env);
+    }
+    else if (node->type() == NodeType::ForStmtType){
+        auto* for_stmt = dynamic_cast<ForRangeStmt*>(node);
+        return evalForRangeStatement(for_stmt, env);
     }
    else if(node->type() == NodeType::IfStmtType){
        auto stmt = dynamic_cast<IfStmt*>(node);
@@ -48,6 +49,10 @@ GCPtr<Object> Evaluator::Eval(Node* node, Env* env)
    else if(node->type() == NodeType::FunctionStmtType){
        auto stmt = dynamic_cast<FunctionStmt*>(node);
        return evalFunctionStmt(stmt, env);
+   }
+   else if(node->type() == NodeType::RangeExprType){
+        auto* expr = dynamic_cast<RangeExpr*>(node);
+        return new RangeObject(expr->init_value, expr->end_value);
    }
    else if(node->type() == NodeType::ExpressionStmtType){
        auto stmt = dynamic_cast<ExpressionStmt*>(node);
@@ -129,7 +134,7 @@ list<GCPtr<Object>> Evaluator::evalProgram(Program *program, Env* env){
     return evaluatedStmts;
 }
 
-GCPtr<Object> Evaluator::evalBlockStatement(BlockStmt *block, Env* env){
+GCPtr<Object> Evaluator::evalBlockStatement(BlockStmt* block, Env* env){
     auto scope = NewEnvironment(env);
     if(scope->is_recurseLimitExceeded())
         return newError("RecursionLimitExceeded: ", "recursion depth exceeded limit");
@@ -144,6 +149,26 @@ GCPtr<Object> Evaluator::evalBlockStatement(BlockStmt *block, Env* env){
         }
     }
     return NATIVE_NULL;
+}
+
+GCPtr<Object> Evaluator::evalForRangeStatement(ForRangeStmt* for_stmt, Env * env ){
+    auto scope = NewEnvironment(env);
+    auto eval_iter = Eval(for_stmt->iter, scope);
+    GCPtr<Object> eval_block = nullptr;
+    if(isError(eval_iter)){
+        return eval_iter;
+    }
+    GCPtr<RangeObject> iter = dynamic_cast<RangeObject*>(eval_iter.unref()) ;
+    while(auto item = dynamic_cast<IntObject*>(iter->nextItem())){
+        scope->put(for_stmt->target->toString(), item);
+        eval_block = Eval(for_stmt->body, scope);
+        if(isError(eval_block)){
+            return eval_block.unref();
+        }else if(auto return_val = dynamic_cast<ReturnObject*>(eval_block.raw())){
+            return return_val->value;
+        }
+    }
+    return eval_block.unref();
 }
 
 GCPtr<Object> Evaluator::evalInitStatement(InitStmt *stmt,  Env* env){
@@ -382,6 +407,7 @@ GCPtr<Object> Evaluator::newError(std::string type, std::string message)
 }
 
 bool Evaluator::isError(GCPtr<Object>& obj){
+
     if(obj->type() == Types::ERRORTYPE)
         return true;
     return false;

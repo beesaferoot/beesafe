@@ -150,6 +150,7 @@ public:
     }
     ~Env();
     void put(std::string, Object*);
+    bool update(std::string, Object*);
     Object* get(std::string);
     bool is_recurseLimitExceeded() const;
 private:
@@ -195,12 +196,11 @@ struct RangeObject: IteratorObject{
     int end_value;
     int iter_value;
     RangeObject(int start, int end)
-        :RangeObject(){
-        iter_value = init_value = start;
-        end_value = end;
-    }
+        :IteratorObject(Types::RANGETYPE), iter_value{start}, init_value{start}, end_value{end}{}
     RangeObject()
-        :IteratorObject(Types::RANGETYPE){}
+        :IteratorObject(Types::RANGETYPE), init_value{0}, iter_value{0}, end_value{0}{
+
+    }
     ~RangeObject(){
 
     }
@@ -217,7 +217,7 @@ struct RangeObject: IteratorObject{
 struct StringObject: IteratorObject {
     std::string value;
     StringObject(std::string v)
-        :IteratorObject(Types::STRINGTYPE), value{v} {}
+        :IteratorObject(Types::STRINGTYPE), value{move(v)} {}
     ~StringObject(){
 
     }

@@ -59,7 +59,6 @@ string join_lines(list<string> & lines){
     for(string& line: lines){
         str += line + "\n";
     }
-//    cout << str << endl;
     return str;
 }
 

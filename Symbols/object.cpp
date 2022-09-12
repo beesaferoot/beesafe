@@ -38,6 +38,17 @@ Object* Env::get(std::string s)
     return nullptr;
 }
 
+bool Env::update(std::string s, Object* obj)
+{
+    for(Env *e = this; e != nullptr; e = e->prev){
+        if(  e->table.find(s) != e->table.end()){
+            e->table[s] = obj;
+            return true;
+        }
+    }
+    return false;
+}
+
 std::string IntObject::toString() const
 {
    return std::to_string(value);
@@ -109,4 +120,11 @@ Object* RangeObject::nextItem()
         iter_value = init_value;
         return nullptr;
     }
+}
+
+std::string RangeObject::toString() const
+{
+    std::ostringstream out;
+    out << "range " << init_value << ".." << end_value;
+    return out.str();
 }

@@ -615,15 +615,15 @@ struct RangeExpr: Expr {
 };
 
 
-struct ForStmt: Stmt {
+struct ForRangeStmt: Stmt {
     Token tok;
     Identifier* target;
     RangeExpr* iter;
     BlockStmt* body;
 
-    ForStmt(Token token, int line)
+    ForRangeStmt(Token token, int line)
         :Stmt(line, NodeType::ForStmtType), tok{token}{}
-    ~ForStmt(){
+    ~ForRangeStmt(){
         delete  target;
         target = nullptr;
         delete iter;
@@ -633,7 +633,7 @@ struct ForStmt: Stmt {
     }
     virtual std::string toString() const;
 
-    friend std::ostream& operator<<(std::ostream &out, ForStmt const * obj)
+    friend std::ostream& operator<<(std::ostream &out, ForRangeStmt const * obj)
     {
         out << obj->toString();
         return out;

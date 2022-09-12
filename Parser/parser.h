@@ -32,7 +32,7 @@ public:
     Program* parseProgram();
     Stmt* parseStatement();
     BlockStmt* parseBlockStatement();
-    ForStmt* parseForIntRangeStatement();
+    ForRangeStmt* parseForIntRangeStatement();
     InitStmt* parseInitStatement();
     DeclareStmt* parseDeclStatement();
     ReturnStmt* parseReturnStatement();

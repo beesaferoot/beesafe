@@ -130,3 +130,23 @@ TEST(TestEvaluator, TestReturnStmt){
     EXPECT_TRUE(!obj.empty());
     EXPECT_EQ(obj.size(), 4);
 }
+
+TEST(TestEvaluator, TestForRange){
+    cout << R"(
+                ----- test_for_range -----
+               )" << endl;
+    string buff = R"(
+                    init sum = 0
+                    for i in (1..10){
+                      sum = sum + 1
+                    }
+                    return sum
+                  )";
+    Lexer* l = Lexer::New(buff);
+    Parser* parser = Parser::New(l);
+    auto env = Evaluator::NewEnvironment();
+    auto program = parser->parseProgram();
+    auto obj = Evaluator::evalProgram(program, env);
+    EXPECT_TRUE(obj.size() == 3);
+    EXPECT_EQ(obj.back()->type(), Types::INTTYPE);
+}

@@ -46,7 +46,7 @@ std::string ast::Number::toString() const {
     return msg.str();
 };
 
-std::string ast::ForStmt::toString() const {
+std::string ast::ForRangeStmt::toString() const {
     std::ostringstream msg;
     msg << "for ";
     msg << target << " in ";

@@ -148,7 +148,7 @@ public:
         }
         addr = t;
         #ifdef DISPLAY
-           cout << "Constructing GCPtr. " << addr << endl;
+           cout << "Constructing GCPtr. " << endl;
         #endif
     }
 
@@ -159,7 +159,7 @@ public:
 
         addr = ob.addr;
         #ifdef DISPLAY
-            cout << "Constructing GCPtr copy." << addr << endl;
+            cout << "Constructing GCPtr copy." << endl;
         #endif
     }
 

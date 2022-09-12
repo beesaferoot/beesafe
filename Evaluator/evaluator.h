@@ -18,6 +18,7 @@ public:
     static GCPtr<Object> Eval(Node*,  Env *);
     static list<GCPtr<Object>> evalProgram(Program*, Env *);
     static GCPtr<Object> evalBlockStatement(BlockStmt*, Env *);
+    static GCPtr<Object> evalForRangeStatement(ForRangeStmt*, Env *);
     static GCPtr<Object> evalIfStatement(IfStmt*, Env*);
     static GCPtr<Object> evalInitStatement(InitStmt*, Env*);
     static GCPtr<Object> evalDeclareStatement(DeclareStmt*, Env*);

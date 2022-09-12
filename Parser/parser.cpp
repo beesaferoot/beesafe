@@ -99,9 +99,9 @@ Program* Parser::parseProgram()
     return program;
 }
 
-ForStmt* Parser::parseForIntRangeStatement()
+ForRangeStmt* Parser::parseForIntRangeStatement()
 {
-    ForStmt* stmt(new ForStmt(curToken, l->line));
+    ForRangeStmt* stmt(new ForRangeStmt(curToken, l->line));
     std::ostringstream message;
     if(!expectPeek(TokenType::ID)){
         message << "expected an identifier"
