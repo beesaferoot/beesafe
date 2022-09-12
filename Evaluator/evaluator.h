@@ -22,7 +22,7 @@ public:
     static GCPtr<Object> evalInitStatement(InitStmt*, Env*);
     static GCPtr<Object> evalDeclareStatement(DeclareStmt*, Env*);
     static GCPtr<Object> evalFunctionStmt(FunctionStmt*, Env*);
-    static GCPtr<Object> evalIdentifier(Identifier*, Env*);
+    static Object* evalIdentifier(Identifier*, Env*);
     static GCPtr<Object> evalStringConcatenate(Token&, GCPtr<Object>, GCPtr<Object>);
     static std::vector<GCPtr<Object>> evalExpressions(std::vector<Expr*>&, Env*);
     static GCPtr<Object> applyFunction(GCPtr<Object>&, std::vector<GCPtr<Object>>&);
@@ -34,7 +34,7 @@ public:
     static GCPtr<Object> evalUniaryMinusOperator(GCPtr<Object>);
     static GCPtr<Object> nativeBooleanObject(bool value);
     static bool isTruthy(GCPtr<Object>);
-    static bool isError(GCPtr<Object>);
+    static bool isError(GCPtr<Object>&);
     static GCPtr<Object> newError(std::string, std::string);
     static Env* NewEnvironment();
     static Env* NewEnvironment(Env*);

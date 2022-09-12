@@ -33,7 +33,7 @@ GCPtr<Object> Evaluator::Eval(Node* node, Env* env)
        auto stmt = dynamic_cast<ReturnStmt*>(node);
        auto value = Eval(stmt->returnValue, env);
        if(isError(value)){
-           return value;
+           return value.raw();
        }
        return new ReturnObject(value.unref());
    }
@@ -109,7 +109,10 @@ GCPtr<Object> Evaluator::Eval(Node* node, Env* env)
        if(isError(RightValue)){
            return RightValue.unref();
        }
-       return evalBinaryExpression(Op->tok, LeftValue, RightValue);
+       auto value = evalBinaryExpression(Op->tok, LeftValue, RightValue);
+       LeftValue.unref();
+       RightValue.unref();
+       return value.raw();
    }
    return nullptr;
 }
@@ -152,11 +155,11 @@ GCPtr<Object> Evaluator::evalInitStatement(InitStmt *stmt,  Env* env){
     return NATIVE_NULL;
 }
 
-GCPtr<Object> Evaluator::evalIdentifier(Identifier *ident, Env* env){
+Object* Evaluator::evalIdentifier(Identifier *ident, Env* env){
     auto value = env->get(ident->toString());
     if(value == nullptr){
         auto message = "name " + ident->toString() + " not defined";
-        return newError("NameError: ", message);
+        return newError("NameError: ", message).unref();
     }
     return value;
 }
@@ -378,7 +381,7 @@ GCPtr<Object> Evaluator::newError(std::string type, std::string message)
     return new ErrorObject(type, message);
 }
 
-bool Evaluator::isError(GCPtr<Object> obj){
+bool Evaluator::isError(GCPtr<Object>& obj){
     if(obj->type() == Types::ERRORTYPE)
         return true;
     return false;
