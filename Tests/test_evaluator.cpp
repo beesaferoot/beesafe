@@ -112,3 +112,21 @@ TEST(TestEvaluator, TestRecursion){
 }
 
 
+TEST(TestEvaluator, TestReturnStmt){
+    cout << R"(
+                ----- test_returnstmt -----
+               )" << endl;
+    string buff = R"(
+                    return 22
+                    init a = 90
+                    return a
+                    return invalid_variable
+                    )";
+    Lexer* l = Lexer::New(buff);
+    Parser* parser = Parser::New(l);
+    auto env = Evaluator::NewEnvironment();
+    auto program = parser->parseProgram();
+    auto obj = Evaluator::evalProgram(program, env);
+    EXPECT_TRUE(!obj.empty());
+    EXPECT_EQ(obj.size(), 4);
+}
