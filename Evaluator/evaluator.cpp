@@ -88,7 +88,8 @@ GCPtr<Object> Evaluator::Eval(Node* node, Env* env)
        auto expr = dynamic_cast<BooleanExpr*>(node);
        return nativeBooleanObject(expr->value);
    }
-   else if(Assign* expr = dynamic_cast<Assign*>(node)){
+   else if(node->type() == NodeType::AssignStmtType){
+        auto* expr = dynamic_cast<Assign*>(node);
         return evalAssignExpression(expr, env);
    }
    else if(node->type() == NodeType::UniaryOpType){

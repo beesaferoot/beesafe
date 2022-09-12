@@ -34,7 +34,8 @@ enum NodeType {
     RangeExprType,
     CallExprType,
     DeclareStmtType,
-    ForStmtType
+    ForStmtType,
+    AssignStmtType
 };
 
 enum PRECENDENCE {
@@ -262,6 +263,8 @@ struct BinaryOp : Op {
     Expr* LeftOp;
     BinaryOp(Token t, int p, int a, int line)
         :Op(t, p, a, line, NodeType::BinaryOpType), RightOp{nullptr}, LeftOp{nullptr} {}
+    BinaryOp(Token t, int p, int a, int line, NodeType node_type)
+        :Op(t, p, a, line, node_type), RightOp{nullptr}, LeftOp{nullptr} {}
     virtual ~BinaryOp(){
          delete  RightOp;
         RightOp = nullptr;
@@ -273,7 +276,7 @@ struct BinaryOp : Op {
 
 struct Assign : BinaryOp{
     Assign(Token t, int line)
-        :BinaryOp(t, PRECENDENCE::ADD, ASSOCIATION::LEFT,line){}
+        :BinaryOp(t, PRECENDENCE::ADD, ASSOCIATION::LEFT,line, NodeType::AssignStmtType){}
     ~Assign(){}
     virtual std::string toString() const;
     friend std::ostream& operator<<(std::ostream &out, Assign const *obj)
