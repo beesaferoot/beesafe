@@ -120,7 +120,7 @@ template <class T> class GCPtr {
 
     static list<GCInfo<T>> gclist;
 
-    T *addr;
+    T* addr;
     static bool first;
     static int gcthreshold;
 
@@ -164,8 +164,10 @@ public:
     }
 
     T* unref() {
-        gclist.remove(addr);
-        return  addr;
+        typename list<GCInfo<T>>::iterator p;
+        p = findPtrInfo(addr);
+        gclist.remove(*p);
+        return  p->memPtr;
     }
 
     GCPtr(const GCPtr &&ob) noexcept {

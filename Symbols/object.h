@@ -113,7 +113,7 @@ struct ReturnObject: Object{
 };
 
 // Error Representation
-struct ErrorObject: Object{
+struct ErrorObject: Object {
     std::string message;
     std::string type;
     ErrorObject()
