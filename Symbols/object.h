@@ -3,7 +3,10 @@
 #include<string>
 #include<iostream>
 #include<vector>
+#include<unordered_map>
+
 #include"Ast/ast.h"
+#include "Evaluator/gc.h"
 
 using namespace ast;
 namespace symbols{
@@ -17,7 +20,9 @@ enum Types {
     FUNCTYPE,
     STRINGTYPE,
     RANGETYPE,
-    ITERTYPE
+    ITERTYPE,
+    BUILTINTYPE,
+    BUILTINFUNCTION
 };
 
 
@@ -232,6 +237,58 @@ struct StringObject: IteratorObject {
 private:
     int iter_index = 0;
 };
+
+// Built-in Object Representation
+    struct BuiltinObject: Object {
+        BuiltinObject()
+                :Object(Types::BUILTINTYPE){}
+        BuiltinObject(Types obj)
+                :Object(obj){}
+        virtual ~BuiltinObject(){};
+        virtual std::string toString() const = 0;
+    };
+
+// Built-in Function Represention
+    struct BuiltinFunction: BuiltinObject {
+        BuiltinFunction(std::string name)
+                :BuiltinObject(Types::BUILTINFUNCTION), func_name{name}{}
+        virtual std::string toString() const;
+        friend std::ostream& operator<<(std::ostream &out, BuiltinFunction *obj)
+        {
+            out << obj->toString();
+            return out;
+        }
+        std::string name() const {
+            return func_name;
+        };
+    private:
+        std::string func_name;
+    };
+
+    struct LenFunction: BuiltinFunction{
+        LenFunction()
+                :BuiltinFunction("len"){}
+        Object* length(std::vector<GCPtr<Object>>& args) const{
+            std::stringstream out;
+            if(args.size() != 1){
+                out << "Len() function takes 1 argument; " <<
+                    args.size() << " arguments found.";
+                return new ErrorObject("TypeError: ", out.str());
+            }
+            else if(auto arg = dynamic_cast<StringObject*>(args[0].raw())){
+                return new IntObject(arg->value.size());
+            }else{
+                out << "function expected a string type; " <<
+                    "found " << args[0]->toString() << " instead.";
+                return new ErrorObject("TypeError: ", out.str());
+            }
+
+        }
+    };
+
+    static std::unordered_map<std::string, BuiltinObject*> Builtins =  {
+            {"len", new LenFunction()},
+    };
 
 }
 #endif // OBJECT_H

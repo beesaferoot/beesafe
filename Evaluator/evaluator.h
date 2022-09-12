@@ -27,6 +27,7 @@ public:
     static GCPtr<Object> evalStringConcatenate(Token&, GCPtr<Object>, GCPtr<Object>);
     static std::vector<GCPtr<Object>> evalExpressions(std::vector<Expr*>&, Env*);
     static GCPtr<Object> applyFunction(GCPtr<Object>&, std::vector<GCPtr<Object>>&);
+    static GCPtr<Object> applyBuiltinFunction(BuiltinFunction*, std::vector<GCPtr<Object>>&);
     static GCPtr<Object> evalAssignExpression(Assign*, Env*);
     static GCPtr<Object> evalUniaryExpression(Token&, GCPtr<Object>);
     static GCPtr<Object> evalBinaryExpression(Token&, GCPtr<Object>&, GCPtr<Object>&);

@@ -35,6 +35,11 @@ Object* Env::get(std::string s)
            return element->second;
        }
     }
+    // find in builtins
+    auto builtin = Builtins.find(s);
+    if( builtin != Builtins.end()){
+        return builtin->second;
+    }
     return nullptr;
 }
 
@@ -126,5 +131,12 @@ std::string RangeObject::toString() const
 {
     std::ostringstream out;
     out << "range " << init_value << ".." << end_value;
+    return out.str();
+}
+
+std::string BuiltinFunction::toString() const
+{
+    std::ostringstream out;
+    out << "built-in: " << func_name << "() function";
     return out.str();
 }

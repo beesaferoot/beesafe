@@ -68,6 +68,9 @@ GCPtr<Object> Evaluator::Eval(Node* node, Env* env)
        if(args.size() == 1 && isError(args[0])){
             return args[0];
        }
+       if(auto builtin_func = dynamic_cast<BuiltinFunction*>(function.unref())){
+            return applyBuiltinFunction(builtin_func, args);
+       }
        return applyFunction(function, args);
    }
    else if(node->type() == NodeType::FunctionExprType){
@@ -227,6 +230,18 @@ std::vector<GCPtr<Object>> Evaluator::evalExpressions(std::vector<Expr *>& exps,
     return result;
 }
 
+GCPtr<Object> Evaluator::applyBuiltinFunction(BuiltinFunction * function, std::vector<GCPtr<Object>>& args)
+{
+    if(function->name() == "len"){
+        auto len_func = dynamic_cast<LenFunction*>(function);
+        return len_func->length(args);
+    }else{
+        std::stringstream out;
+        out << "function name '" << function->name() << "' is not defined is this scope.";
+        return newError("NameError: ", out.str());
+    }
+}
+
 GCPtr<Object> Evaluator::applyFunction(GCPtr<Object>& obj, std::vector<GCPtr<Object>>& args){
        auto strValue = obj->toString();
        GCPtr<FunctionObject> function = dynamic_cast<FunctionObject*>(obj.unref());
@@ -259,6 +274,9 @@ GCPtr<Object> Evaluator::evalAssignExpression(Assign *expr, Env *env){
     auto leftValue = Eval(expr->LeftOp, env);
     if(isError(leftValue)){
         return leftValue;
+    }
+    if(auto builtin = dynamic_cast<BuiltinObject*>(leftValue.raw())){
+        return newError("AssignError: ", "can't assign '" + builtin->toString() + "'");
     }
     auto rightValue = Eval(expr->RightOp, env);
     if(isError(rightValue)){

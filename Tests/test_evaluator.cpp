@@ -150,3 +150,22 @@ TEST(TestEvaluator, TestForRange){
     EXPECT_TRUE(obj.size() == 3);
     EXPECT_EQ(obj.back()->type(), Types::INTTYPE);
 }
+
+TEST(TestEvaluator, TestBuiltinLenFunc){
+    cout << R"(
+            ----- test_builtin_function -----
+           )" << endl;
+    string buff = R"(len
+               len("h")
+               len("str")
+               len(1)
+               len()
+              )";
+    Lexer* l = Lexer::New(buff);
+    Parser* parser = Parser::New(l);
+    auto env = Evaluator::NewEnvironment();
+    auto program = parser->parseProgram();
+    auto obj = Evaluator::evalProgram(program, env);
+    EXPECT_TRUE(obj.size() == 5);
+    EXPECT_EQ(obj.back()->type(), Types::ERRORTYPE);
+}
