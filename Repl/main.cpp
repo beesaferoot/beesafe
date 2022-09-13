@@ -1,5 +1,5 @@
-#include<iostream>
-#include<random>
+#include <iostream>
+#include <random>
 #include "Parser/parser.h"
 #include "Evaluator/evaluator.h"
 #include "Lexer/lexer.h"
@@ -43,19 +43,21 @@ void spitParseErrors(std::vector<string> errors){
 }
 
 void read_lines( istream& in, list<string>& list ) {
+    std::string line;
+    std::string prev_line;
     while( true ) {
-        std::string line = "";
         std::getline( in, line );
-        if( line != "" ) {
+        if(!line.empty()) {
             list.push_back( line );
-        }else {
+        }else if (prev_line.empty()){
             break;
         }
+        prev_line = line;
     }
 }
 
 string join_lines(list<string> & lines){
-    string str = "";
+    string str;
     for(string& line: lines){
         str += line + "\n";
     }
@@ -79,7 +81,7 @@ int main()
         auto p = parser::Parser::New(l);
         auto program = p->parseProgram();
         cout << "Parse -> "<< program << endl;
-        if (p->hasErrors() != true){
+        if (!p->hasErrors()){
             auto evalStmts = Evaluator::evalProgram(program, env);
             cout << "evaluated statement size: " << evalStmts.size() << endl;
             cout << "Eval -> " << evalStmts.front() << endl;
