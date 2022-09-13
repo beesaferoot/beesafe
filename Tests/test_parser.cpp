@@ -228,6 +228,24 @@ TEST(TestParser, TestException){
     Lexer* l = Lexer::New(buff);
     Parser* parser = Parser::New(l);
     auto program = parser->parseProgram();
+    EXPECT_TRUE(parser->hasErrors());
     EXPECT_TRUE(program->Stmts.empty());
     cout << program << endl;
+}
+
+TEST(TestParser, TestIncompleteCurlyBrackets){
+    cout << R"(
+                ----- test_incompletecurlybrackets------
+            )" << endl;
+    string buff = R"(
+        for i in (3..4){
+            if(i<4){
+                return i
+            }
+    )";
+    Lexer* l = Lexer::New(buff);
+    Parser* parser = Parser::New(l);
+    auto program = parser->parseProgram();
+    EXPECT_TRUE(parser->hasErrors());
+    EXPECT_EQ(program->Stmts.size(), 1);
 }
