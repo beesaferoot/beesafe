@@ -68,7 +68,8 @@ GCPtr<Object> Evaluator::Eval(Node* node, Env* env)
        if(args.size() == 1 && isError(args[0])){
             return args[0];
        }
-       if(auto builtin_func = dynamic_cast<BuiltinFunction*>(function.unref())){
+       if(auto builtin_func = dynamic_cast<BuiltinFunction*>(function.raw())){
+            function.unref();
             return applyBuiltinFunction(builtin_func, args);
        }
        return applyFunction(function, args);
